@@ -43,3 +43,7 @@ pids/
 *.pid
 *.seed
 *.pid.lock
+#extra
+.gitignore
+testing.txt
+result.json
