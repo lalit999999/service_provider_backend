@@ -1,6 +1,7 @@
 import Booking from '../models/Booking.js';
 import { isValidStatusTransition, BOOKING_STATUS } from '../constants/bookingStatus.js';
 import User from '../models/User.js';
+import { uploadImage, deleteImage } from '../config/cloudinary.js';
 
 // Create booking (customer only)
 export const createBooking = async (req, res, next) => {
@@ -319,4 +320,125 @@ const getValidTransitions = (currentStatus) => {
     };
 
     return validTransitions[currentStatus] || [];
+};
+
+// Upload customer issue image
+export const uploadCustomerImage = async (req, res, next) => {
+    try {
+        const { bookingId } = req.params;
+        const customerId = req.user.id;
+
+        const booking = await Booking.findById(bookingId);
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        // Verify customer owns this booking
+        if (booking.customerId.toString() !== customerId) {
+            return res.status(403).json({ message: 'Only customer can upload issue image for this booking' });
+        }
+
+        // Verify booking status
+        if (!['Accepted', 'Completed'].includes(booking.status)) {
+            return res.status(400).json({ message: 'Issue image can only be uploaded after provider accepts the booking' });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ message: 'No image file provided' });
+        }
+
+        // Delete old image from Cloudinary if exists
+        if (booking.customerImage?.url) {
+            const publicId = booking.customerImage.url.split('/').pop().split('.')[0];
+            try {
+                await deleteImage(`bookings/customer/${publicId}`);
+            } catch (err) {
+                console.error('Error deleting old image:', err);
+            }
+        }
+
+        // Upload new image to Cloudinary
+        const uploadResult = await uploadImage(req.file.buffer, 'bookings/customer');
+
+        // Update booking with new customer image
+        booking.customerImage = {
+            url: uploadResult.url,
+            uploadedAt: new Date(),
+            uploadedBy: customerId,
+        };
+
+        await booking.save();
+
+        await booking.populate([
+            { path: 'customerId', select: 'name email city area' },
+            { path: 'providerId', select: 'name email city area' },
+            { path: 'serviceId', select: 'title description basePrice' },
+        ]);
+
+        res.status(200).json({
+            message: 'Customer image uploaded successfully',
+            booking,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Upload provider work image (before/after)
+export const uploadProviderWorkImage = async (req, res, next) => {
+    try {
+        const { bookingId } = req.params;
+        const { type } = req.query;
+        const providerId = req.user.id;
+
+        // Validate image type
+        if (!['before', 'after'].includes(type)) {
+            return res.status(400).json({ message: "Image type must be 'before' or 'after'" });
+        }
+
+        const booking = await Booking.findById(bookingId);
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        // Verify provider owns this booking
+        if (booking.providerId.toString() !== providerId) {
+            return res.status(403).json({ message: 'Only provider can upload work images for this booking' });
+        }
+
+        // Verify booking status
+        if (!['Accepted', 'Completed'].includes(booking.status)) {
+            return res.status(400).json({ message: 'Work images can only be uploaded when booking is active' });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ message: 'No image file provided' });
+        }
+
+        // Upload image to Cloudinary
+        const uploadResult = await uploadImage(req.file.buffer, 'bookings/provider');
+
+        // Add image to providerImages array
+        booking.providerImages.push({
+            type,
+            url: uploadResult.url,
+            uploadedAt: new Date(),
+            uploadedBy: providerId,
+        });
+
+        await booking.save();
+
+        await booking.populate([
+            { path: 'customerId', select: 'name email city area' },
+            { path: 'providerId', select: 'name email city area' },
+            { path: 'serviceId', select: 'title description basePrice' },
+        ]);
+
+        res.status(200).json({
+            message: `Provider ${type} image uploaded successfully`,
+            booking,
+        });
+    } catch (err) {
+        next(err);
+    }
 };

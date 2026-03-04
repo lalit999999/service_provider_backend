@@ -39,6 +39,28 @@ const bookingSchema = new mongoose.Schema(
             enum: ['Requested', 'Accepted', 'Rejected', 'Completed', 'Cancelled'],
             default: 'Requested',
         },
+        customerImage: {
+            url: String,
+            uploadedAt: Date,
+            uploadedBy: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
+            },
+        },
+        providerImages: [
+            {
+                type: {
+                    type: String,
+                    enum: ['before', 'after'],
+                },
+                url: String,
+                uploadedAt: Date,
+                uploadedBy: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'User',
+                },
+            },
+        ],
     },
     { timestamps: true }
 );

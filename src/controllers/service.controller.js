@@ -15,6 +15,12 @@ export const createService = async (req, res, next) => {
                 .json({ message: 'Please provide all required fields' });
         }
 
+        // Check if provider has uploaded profile image
+        const provider = await User.findById(providerId);
+        if (!provider.profileImage?.url) {
+            return res.status(400).json({ message: 'Profile image required before creating services' });
+        }
+
         // Create service
         const service = await Service.create({
             providerId,

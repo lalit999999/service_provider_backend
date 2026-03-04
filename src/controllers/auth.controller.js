@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import { uploadImage, deleteImage } from '../config/cloudinary.js';
 
 // Generate JWT token
 const generateToken = (id, role) => {
@@ -100,6 +101,60 @@ export const logout = async (req, res, next) => {
         // This endpoint serves as a confirmation endpoint and can be extended with token blacklisting.
         res.status(200).json({
             message: 'Logged out successfully',
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Upload/Update profile image
+export const uploadProfileImage = async (req, res, next) => {
+    try {
+        const userId = req.params.userId || req.user.id;
+
+        if (req.user.id !== userId && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Unauthorized to upload profile image for this user' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ message: 'No image file provided' });
+        }
+
+        // Delete old image from Cloudinary if exists
+        if (user.profileImage?.url) {
+            const publicId = user.profileImage.url.split('/').pop().split('.')[0];
+            try {
+                await deleteImage(`profiles/${publicId}`);
+            } catch (err) {
+                console.error('Error deleting old image:', err);
+            }
+        }
+
+        // Upload new image to Cloudinary
+        const uploadResult = await uploadImage(req.file.buffer, 'profiles');
+
+        // Update user with new profile image
+        user.profileImage = {
+            url: uploadResult.url,
+            uploadedAt: new Date(),
+        };
+
+        await user.save();
+
+        res.status(200).json({
+            message: 'Profile image uploaded successfully',
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                profileImage: user.profileImage,
+            },
         });
     } catch (err) {
         next(err);

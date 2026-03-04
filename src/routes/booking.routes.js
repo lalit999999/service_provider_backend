@@ -6,9 +6,12 @@ import {
     acceptBooking,
     updateBookingStatus,
     cancelBooking,
+    uploadCustomerImage,
+    uploadProviderWorkImage,
 } from '../controllers/booking.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { roleMiddleware } from '../middlewares/role.middleware.js';
+import { uploadSingle } from '../middlewares/upload.middleware.js';
 
 const router = express.Router();
 
@@ -33,5 +36,9 @@ router.patch(
 
 // Cancel booking (customer or provider)
 router.patch('/:id/cancel', authMiddleware, cancelBooking);
+
+// Image upload routes
+router.post('/:bookingId/issue-image', authMiddleware, uploadSingle, uploadCustomerImage);
+router.post('/:bookingId/work-image', authMiddleware, uploadSingle, uploadProviderWorkImage);
 
 export default router;

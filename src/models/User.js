@@ -30,11 +30,15 @@ const userSchema = new mongoose.Schema(
         },
         city: {
             type: String,
-            required: true,
+            required: function () {
+                return this.role === "customer" || this.role === "provider";
+            }
         },
         area: {
             type: String,
-            required: true,
+            required: function () {
+                return this.role === "customer" || this.role === "provider";
+            }
         },
         isApproved: {
             type: Boolean,
@@ -43,6 +47,10 @@ const userSchema = new mongoose.Schema(
         isAvailable: {
             type: Boolean,
             default: true,
+        },
+        profileImage: {
+            url: String,
+            uploadedAt: Date,
         },
     },
     { timestamps: true }
