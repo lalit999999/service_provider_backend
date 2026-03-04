@@ -1,6 +1,7 @@
 # Local Service Provider - Backend API Testing Guide
 
 ## Base URL
+
 ```
 http://localhost:3000/api
 ```
@@ -8,6 +9,7 @@ http://localhost:3000/api
 ---
 
 ## 📋 Table of Contents
+
 1. [Authentication](#authentication)
 2. [Categories](#categories)
 3. [Services](#services)
@@ -20,11 +22,13 @@ http://localhost:3000/api
 ## 🔐 Authentication
 
 ### 1. Register User
+
 **POST** `/auth/register`
 
 **Public** ✅ (No token required)
 
 **Body:**
+
 ```json
 {
   "name": "John Doe",
@@ -39,6 +43,7 @@ http://localhost:3000/api
 **Role options:** `customer`, `provider`, `admin`
 
 **Response (201):**
+
 ```json
 {
   "message": "User registered successfully",
@@ -53,6 +58,7 @@ http://localhost:3000/api
 ```
 
 **cURL:**
+
 ```bash
 curl -X POST http://localhost:3000/api/auth/register \
   -H "Content-Type: application/json" \
@@ -69,11 +75,13 @@ curl -X POST http://localhost:3000/api/auth/register \
 ---
 
 ### 2. Login
+
 **POST** `/auth/login`
 
 **Public** ✅ (No token required)
 
 **Body:**
+
 ```json
 {
   "email": "john@example.com",
@@ -82,6 +90,7 @@ curl -X POST http://localhost:3000/api/auth/register \
 ```
 
 **Response (200):**
+
 ```json
 {
   "message": "Logged in successfully",
@@ -96,6 +105,7 @@ curl -X POST http://localhost:3000/api/auth/register \
 ```
 
 **cURL:**
+
 ```bash
 curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
@@ -108,16 +118,19 @@ curl -X POST http://localhost:3000/api/auth/login \
 ---
 
 ### 3. Logout
+
 **POST** `/auth/logout`
 
 **Protected** 🔒 (All authenticated users)
 
 **Headers:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Response (200):**
+
 ```json
 {
   "message": "Logged out successfully"
@@ -125,6 +138,7 @@ Authorization: Bearer <token>
 ```
 
 **cURL:**
+
 ```bash
 TOKEN="your_jwt_token"
 curl -X POST http://localhost:3000/api/auth/logout \
@@ -137,17 +151,20 @@ curl -X POST http://localhost:3000/api/auth/logout \
 ## 📂 Categories
 
 ### 1. Create Category
+
 **POST** `/categories`
 
 **Protected** 🔒 **Admin Only**
 
 **Headers:**
+
 ```
 Authorization: Bearer <admin_token>
 Content-Type: application/json
 ```
 
 **Body:**
+
 ```json
 {
   "name": "Plumbing",
@@ -156,6 +173,7 @@ Content-Type: application/json
 ```
 
 **Response (201):**
+
 ```json
 {
   "message": "Category created successfully",
@@ -170,6 +188,7 @@ Content-Type: application/json
 ```
 
 **cURL:**
+
 ```bash
 ADMIN_TOKEN="admin_jwt_token"
 curl -X POST http://localhost:3000/api/categories \
@@ -184,11 +203,13 @@ curl -X POST http://localhost:3000/api/categories \
 ---
 
 ### 2. Get All Categories
+
 **GET** `/categories`
 
 **Public** ✅ (No token required)
 
 **Response (200):**
+
 ```json
 {
   "message": "Categories retrieved successfully",
@@ -206,6 +227,7 @@ curl -X POST http://localhost:3000/api/categories \
 ```
 
 **cURL:**
+
 ```bash
 curl -X GET http://localhost:3000/api/categories
 ```
@@ -213,11 +235,13 @@ curl -X GET http://localhost:3000/api/categories
 ---
 
 ### 3. Get Single Category
+
 **GET** `/categories/:id`
 
 **Public** ✅ (No token required)
 
 **Response (200):**
+
 ```json
 {
   "message": "Category retrieved successfully",
@@ -230,6 +254,7 @@ curl -X GET http://localhost:3000/api/categories
 ```
 
 **cURL:**
+
 ```bash
 curl -X GET http://localhost:3000/api/categories/CATEGORY_ID
 ```
@@ -237,11 +262,13 @@ curl -X GET http://localhost:3000/api/categories/CATEGORY_ID
 ---
 
 ### 4. Update Category
+
 **PUT** `/categories/:id`
 
 **Protected** 🔒 **Admin Only**
 
 **Body:**
+
 ```json
 {
   "name": "Advanced Plumbing",
@@ -250,6 +277,7 @@ curl -X GET http://localhost:3000/api/categories/CATEGORY_ID
 ```
 
 **cURL:**
+
 ```bash
 ADMIN_TOKEN="admin_jwt_token"
 curl -X PUT http://localhost:3000/api/categories/CATEGORY_ID \
@@ -264,11 +292,13 @@ curl -X PUT http://localhost:3000/api/categories/CATEGORY_ID \
 ---
 
 ### 5. Delete Category
+
 **DELETE** `/categories/:id`
 
 **Protected** 🔒 **Admin Only**
 
 **cURL:**
+
 ```bash
 ADMIN_TOKEN="admin_jwt_token"
 curl -X DELETE http://localhost:3000/api/categories/CATEGORY_ID \
@@ -280,17 +310,20 @@ curl -X DELETE http://localhost:3000/api/categories/CATEGORY_ID \
 ## 🔧 Services
 
 ### 1. Create Service
+
 **POST** `/services`
 
 **Protected** 🔒 **Provider Only**
 
 **Headers:**
+
 ```
 Authorization: Bearer <provider_token>
 Content-Type: application/json
 ```
 
 **Body:**
+
 ```json
 {
   "categoryId": "category_id",
@@ -301,6 +334,7 @@ Content-Type: application/json
 ```
 
 **Response (201):**
+
 ```json
 {
   "message": "Service created successfully",
@@ -325,6 +359,7 @@ Content-Type: application/json
 ```
 
 **cURL:**
+
 ```bash
 PROVIDER_TOKEN="provider_jwt_token"
 CATEGORY_ID="category_id"
@@ -343,15 +378,18 @@ curl -X POST http://localhost:3000/api/services \
 ---
 
 ### 2. Get All Services
+
 **GET** `/services`
 
 **Public** ✅ (No token required)
 
 **Query Parameters:**
+
 - `category` - Filter by category name (optional)
 - `city` - Filter by provider city (optional)
 
 **Examples:**
+
 ```
 GET /services
 GET /services?category=plumbing
@@ -360,6 +398,7 @@ GET /services?category=plumbing&city=Patna
 ```
 
 **Response (200):**
+
 ```json
 {
   "message": "Services retrieved successfully",
@@ -383,6 +422,7 @@ GET /services?category=plumbing&city=Patna
 ```
 
 **cURL:**
+
 ```bash
 # Get all services
 curl -X GET http://localhost:3000/api/services
@@ -400,11 +440,13 @@ curl -X GET "http://localhost:3000/api/services?category=plumbing&city=Patna"
 ---
 
 ### 3. Get Single Service
+
 **GET** `/services/:id`
 
 **Public** ✅ (No token required)
 
 **cURL:**
+
 ```bash
 curl -X GET http://localhost:3000/api/services/SERVICE_ID
 ```
@@ -412,11 +454,13 @@ curl -X GET http://localhost:3000/api/services/SERVICE_ID
 ---
 
 ### 4. Update Service
+
 **PUT** `/services/:id`
 
 **Protected** 🔒 **Provider Only** (Own services only)
 
 **Body:**
+
 ```json
 {
   "title": "Premium Plumbing Services",
@@ -426,6 +470,7 @@ curl -X GET http://localhost:3000/api/services/SERVICE_ID
 ```
 
 **cURL:**
+
 ```bash
 PROVIDER_TOKEN="provider_jwt_token"
 curl -X PUT http://localhost:3000/api/services/SERVICE_ID \
@@ -441,11 +486,13 @@ curl -X PUT http://localhost:3000/api/services/SERVICE_ID \
 ---
 
 ### 5. Delete Service
+
 **DELETE** `/services/:id`
 
 **Protected** 🔒 **Provider Only** (Own services only)
 
 **cURL:**
+
 ```bash
 PROVIDER_TOKEN="provider_jwt_token"
 curl -X DELETE http://localhost:3000/api/services/SERVICE_ID \
@@ -457,16 +504,19 @@ curl -X DELETE http://localhost:3000/api/services/SERVICE_ID \
 ## 📕 Bookings
 
 ### 1. Create Booking
+
 **POST** `/bookings`
 
 **Protected** 🔒 **Customer Only**
 
 **Requirements:**
+
 - ✅ Booking is not your own service
 - ✅ Provider must be approved (`isApproved = true`)
 - ✅ Provider must be available (`isAvailable = true`)
 
 **Body:**
+
 ```json
 {
   "serviceId": "service_id",
@@ -477,6 +527,7 @@ curl -X DELETE http://localhost:3000/api/services/SERVICE_ID \
 ```
 
 **Response (201):**
+
 ```json
 {
   "message": "Booking created successfully",
@@ -504,6 +555,7 @@ curl -X DELETE http://localhost:3000/api/services/SERVICE_ID \
 ```
 
 **cURL:**
+
 ```bash
 CUSTOMER_TOKEN="customer_jwt_token"
 SERVICE_ID="service_id"
@@ -522,11 +574,13 @@ curl -X POST http://localhost:3000/api/bookings \
 ---
 
 ### 2. Get My Bookings
+
 **GET** `/bookings`
 
 **Protected** 🔒 (Customer sees own, Provider sees their service bookings)
 
 **Response (200):**
+
 ```json
 {
   "message": "Bookings retrieved successfully",
@@ -536,6 +590,7 @@ curl -X POST http://localhost:3000/api/bookings \
 ```
 
 **cURL:**
+
 ```bash
 TOKEN="jwt_token"
 curl -X GET http://localhost:3000/api/bookings \
@@ -545,11 +600,13 @@ curl -X GET http://localhost:3000/api/bookings \
 ---
 
 ### 3. Get Single Booking
+
 **GET** `/bookings/:id`
 
 **Protected** 🔒 (Only customer or provider of that booking)
 
 **cURL:**
+
 ```bash
 TOKEN="jwt_token"
 curl -X GET http://localhost:3000/api/bookings/BOOKING_ID \
@@ -559,6 +616,7 @@ curl -X GET http://localhost:3000/api/bookings/BOOKING_ID \
 ---
 
 ### 4. Accept Booking
+
 **PATCH** `/bookings/:id/accept`
 
 **Protected** 🔒 **Provider Only**
@@ -566,6 +624,7 @@ curl -X GET http://localhost:3000/api/bookings/BOOKING_ID \
 **Status Change:** `Requested` → `Confirmed`
 
 **cURL:**
+
 ```bash
 PROVIDER_TOKEN="provider_jwt_token"
 curl -X PATCH http://localhost:3000/api/bookings/BOOKING_ID/accept \
@@ -576,16 +635,19 @@ curl -X PATCH http://localhost:3000/api/bookings/BOOKING_ID/accept \
 ---
 
 ### 5. Update Booking Status
+
 **PATCH** `/bookings/:id/status`
 
 **Protected** 🔒 **Provider Only**
 
 **Valid Transitions:**
+
 - `Requested` → `Confirmed` ✅
 - `Confirmed` → `In-progress` ✅
 - `In-progress` → `Completed` ✅
 
 **Body:**
+
 ```json
 {
   "status": "In-progress"
@@ -593,6 +655,7 @@ curl -X PATCH http://localhost:3000/api/bookings/BOOKING_ID/accept \
 ```
 
 **cURL:**
+
 ```bash
 PROVIDER_TOKEN="provider_jwt_token"
 curl -X PATCH http://localhost:3000/api/bookings/BOOKING_ID/status \
@@ -604,16 +667,19 @@ curl -X PATCH http://localhost:3000/api/bookings/BOOKING_ID/status \
 ---
 
 ### 6. Cancel Booking
+
 **PATCH** `/bookings/:id/cancel`
 
 **Protected** 🔒 (Customer or Provider)
 
 **Customer Restrictions:**
+
 - ✅ Can cancel if status = `Requested`
 - ✅ Can cancel if status = `Confirmed`
 - ❌ Cannot cancel if status = `In-progress` or `Completed`
 
 **cURL:**
+
 ```bash
 TOKEN="jwt_token"
 curl -X PATCH http://localhost:3000/api/bookings/BOOKING_ID/cancel \
@@ -625,17 +691,22 @@ curl -X PATCH http://localhost:3000/api/bookings/BOOKING_ID/cancel \
 
 ## ⭐ Reviews
 
+API_TESTING_GUIDE
+
 ### 1. Create Review
+
 **POST** `/reviews`
 
 **Protected** 🔒 **Customer Only**
 
 **Requirements:**
+
 - ✅ Booking status must be `Completed`
 - ✅ Customer must own that booking
 - ✅ Only one review per booking
 
 **Body:**
+
 ```json
 {
   "bookingId": "booking_id",
@@ -645,10 +716,12 @@ curl -X PATCH http://localhost:3000/api/bookings/BOOKING_ID/cancel \
 ```
 
 **Constraints:**
+
 - `rating`: 1-5
 - `comment`: 10-500 characters
 
 **Response (201):**
+
 ```json
 {
   "message": "Review created successfully",
@@ -670,6 +743,7 @@ curl -X PATCH http://localhost:3000/api/bookings/BOOKING_ID/cancel \
 ```
 
 **cURL:**
+
 ```bash
 CUSTOMER_TOKEN="customer_jwt_token"
 BOOKING_ID="booking_id"
@@ -687,17 +761,20 @@ curl -X POST http://localhost:3000/api/reviews \
 ---
 
 ### 2. Get Provider Reviews
+
 **GET** `/reviews/provider/:providerId`
 
 **Public** ✅ (No token required)
 
 **Includes:**
+
 - Average rating (aggregated)
 - Total reviews count
 - Min/Max ratings
 - Review list sorted by newest first
 
 **Response (200):**
+
 ```json
 {
   "message": "Reviews retrieved successfully",
@@ -721,6 +798,7 @@ curl -X POST http://localhost:3000/api/reviews \
 ```
 
 **cURL:**
+
 ```bash
 curl -X GET http://localhost:3000/api/reviews/provider/PROVIDER_ID
 ```
@@ -728,11 +806,13 @@ curl -X GET http://localhost:3000/api/reviews/provider/PROVIDER_ID
 ---
 
 ### 3. Get Booking Review
+
 **GET** `/reviews/booking/:bookingId`
 
 **Public** ✅ (No token required)
 
 **cURL:**
+
 ```bash
 curl -X GET http://localhost:3000/api/reviews/booking/BOOKING_ID
 ```
@@ -740,11 +820,13 @@ curl -X GET http://localhost:3000/api/reviews/booking/BOOKING_ID
 ---
 
 ### 4. Update Review
+
 **PUT** `/reviews/:id`
 
 **Protected** 🔒 **Customer Only** (Review author only)
 
 **Body:**
+
 ```json
 {
   "rating": 4,
@@ -753,6 +835,7 @@ curl -X GET http://localhost:3000/api/reviews/booking/BOOKING_ID
 ```
 
 **cURL:**
+
 ```bash
 CUSTOMER_TOKEN="customer_jwt_token"
 curl -X PUT http://localhost:3000/api/reviews/REVIEW_ID \
@@ -767,11 +850,13 @@ curl -X PUT http://localhost:3000/api/reviews/REVIEW_ID \
 ---
 
 ### 5. Delete Review
+
 **DELETE** `/reviews/:id`
 
 **Protected** 🔒 **Customer Only** (Review author only)
 
 **cURL:**
+
 ```bash
 CUSTOMER_TOKEN="customer_jwt_token"
 curl -X DELETE http://localhost:3000/api/reviews/REVIEW_ID \
@@ -783,6 +868,7 @@ curl -X DELETE http://localhost:3000/api/reviews/REVIEW_ID \
 ## 🧪 Testing Workflow
 
 ### Step 1: Register Users
+
 ```bash
 # Register as customer
 curl -X POST http://localhost:3000/api/auth/register \
@@ -822,6 +908,7 @@ curl -X POST http://localhost:3000/api/auth/register \
 ```
 
 ### Step 2: Login & Get Tokens
+
 ```bash
 # Customer login
 CUSTOMER_TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/login \
@@ -847,6 +934,7 @@ echo "Admin: $ADMIN_TOKEN"
 ```
 
 ### Step 3: Create Categories (Admin)
+
 ```bash
 CATEGORY_ID=$(curl -s -X POST http://localhost:3000/api/categories \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
@@ -860,6 +948,7 @@ echo "Category ID: $CATEGORY_ID"
 ```
 
 ### Step 4: Create Service (Provider)
+
 ```bash
 SERVICE_ID=$(curl -s -X POST http://localhost:3000/api/services \
   -H "Authorization: Bearer $PROVIDER_TOKEN" \
@@ -875,6 +964,7 @@ echo "Service ID: $SERVICE_ID"
 ```
 
 ### Step 5: Create Booking (Customer)
+
 ```bash
 BOOKING_ID=$(curl -s -X POST http://localhost:3000/api/bookings \
   -H "Authorization: Bearer $CUSTOMER_TOKEN" \
@@ -890,6 +980,7 @@ echo "Booking ID: $BOOKING_ID"
 ```
 
 ### Step 6: Accept & Complete Booking (Provider)
+
 ```bash
 # Accept booking
 curl -X PATCH http://localhost:3000/api/bookings/$BOOKING_ID/accept \
@@ -910,6 +1001,7 @@ curl -X PATCH http://localhost:3000/api/bookings/$BOOKING_ID/status \
 ```
 
 ### Step 7: Create Review (Customer)
+
 ```bash
 curl -X POST http://localhost:3000/api/reviews \
   -H "Authorization: Bearer $CUSTOMER_TOKEN" \
@@ -922,6 +1014,7 @@ curl -X POST http://localhost:3000/api/reviews \
 ```
 
 ### Step 8: View Provider Reviews
+
 ```bash
 curl -X GET http://localhost:3000/api/reviews/provider/PROVIDER_ID
 ```
@@ -931,6 +1024,7 @@ curl -X GET http://localhost:3000/api/reviews/provider/PROVIDER_ID
 ## ⚠️ Error Scenarios
 
 ### 1. Unauthorized Access
+
 ```bash
 # No token
 curl -X POST http://localhost:3000/api/services
@@ -943,6 +1037,7 @@ curl -X POST http://localhost:3000/api/services \
 ```
 
 ### 2. Forbidden Access
+
 ```bash
 # Customer trying to create service (provider only)
 curl -X POST http://localhost:3000/api/services \
@@ -953,6 +1048,7 @@ curl -X POST http://localhost:3000/api/services \
 ```
 
 ### 3. Validation Errors
+
 ```bash
 # Missing required fields
 curl -X POST http://localhost:3000/api/reviews \
@@ -963,6 +1059,7 @@ curl -X POST http://localhost:3000/api/reviews \
 ```
 
 ### 4. Business Logic Violations
+
 ```bash
 # Booking not completed
 curl -X POST http://localhost:3000/api/reviews \
@@ -976,15 +1073,15 @@ curl -X POST http://localhost:3000/api/reviews \
 
 ## 📌 Status Codes Reference
 
-| Code | Meaning |
-|------|---------|
-| 200 | Success (GET, PUT) |
-| 201 | Created (POST) |
-| 400 | Bad Request (validation error) |
-| 401 | Unauthorized (no/invalid token) |
-| 403 | Forbidden (insufficient permissions) |
-| 404 | Not Found |
-| 500 | Server Error |
+| Code | Meaning                              |
+| ---- | ------------------------------------ |
+| 200  | Success (GET, PUT)                   |
+| 201  | Created (POST)                       |
+| 400  | Bad Request (validation error)       |
+| 401  | Unauthorized (no/invalid token)      |
+| 403  | Forbidden (insufficient permissions) |
+| 404  | Not Found                            |
+| 500  | Server Error                         |
 
 ---
 

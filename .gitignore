@@ -47,3 +47,4 @@ pids/
 .gitignore
 testing.txt
 result.json
+API_TESTING_GUIDE.md
