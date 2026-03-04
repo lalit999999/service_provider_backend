@@ -3,6 +3,7 @@ import {
     createBooking,
     getBookings,
     getBookingById,
+    acceptBooking,
     updateBookingStatus,
     cancelBooking,
 } from '../controllers/booking.controller.js';
@@ -16,8 +17,14 @@ router.post('/', authMiddleware, roleMiddleware(['customer']), createBooking);
 router.get('/', authMiddleware, getBookings);
 router.get('/:id', authMiddleware, getBookingById);
 
-// Provider routes (update status)
-router.put(
+// Provider routes
+router.patch(
+    '/:id/accept',
+    authMiddleware,
+    roleMiddleware(['provider']),
+    acceptBooking
+);
+router.patch(
     '/:id/status',
     authMiddleware,
     roleMiddleware(['provider']),
@@ -25,6 +32,6 @@ router.put(
 );
 
 // Cancel booking (customer or provider)
-router.put('/:id/cancel', authMiddleware, cancelBooking);
+router.patch('/:id/cancel', authMiddleware, cancelBooking);
 
 export default router;

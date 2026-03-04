@@ -143,6 +143,51 @@ export const getBookingById = async (req, res, next) => {
     }
 };
 
+// Accept booking (provider only) - Requested → Confirmed
+export const acceptBooking = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+
+        const booking = await Booking.findById(id);
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        // Only provider can accept
+        if (booking.providerId.toString() !== userId) {
+            return res
+                .status(403)
+                .json({ message: 'Only provider can accept this booking' });
+        }
+
+        // Check if booking is in Requested status
+        if (booking.status !== BOOKING_STATUS.REQUESTED) {
+            return res.status(400).json({
+                message: `Cannot accept booking with status: ${booking.status}. Only Requested bookings can be accepted.`,
+                currentStatus: booking.status,
+            });
+        }
+
+        // Update status to Confirmed
+        booking.status = BOOKING_STATUS.CONFIRMED;
+        await booking.save();
+
+        await booking.populate([
+            { path: 'customerId', select: 'name email city area' },
+            { path: 'providerId', select: 'name email city area' },
+            { path: 'serviceId', select: 'title description basePrice' },
+        ]);
+
+        res.status(200).json({
+            message: 'Booking accepted successfully',
+            booking,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
 // Update booking status (provider only)
 export const updateBookingStatus = async (req, res, next) => {
     try {
@@ -195,7 +240,7 @@ export const updateBookingStatus = async (req, res, next) => {
     }
 };
 
-// Cancel booking (customer or provider)
+// Cancel booking
 export const cancelBooking = async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -223,10 +268,25 @@ export const cancelBooking = async (req, res, next) => {
                 .json({ message: 'Only provider can cancel this booking' });
         }
 
-        // Check if can be cancelled
+        // ✅ Customer can only cancel if status is Requested or Confirmed
+        if (userRole === 'customer') {
+            if (
+                booking.status !== BOOKING_STATUS.REQUESTED &&
+                booking.status !== BOOKING_STATUS.CONFIRMED
+            ) {
+                return res.status(400).json({
+                    message: `Customers can only cancel bookings with status: ${BOOKING_STATUS.REQUESTED} or ${BOOKING_STATUS.CONFIRMED}`,
+                    currentStatus: booking.status,
+                });
+            }
+        }
+
+        // Check if can be cancelled (using valid transitions)
         if (!isValidStatusTransition(booking.status, BOOKING_STATUS.CANCELLED)) {
             return res.status(400).json({
                 message: `Cannot cancel booking with status: ${booking.status}`,
+                currentStatus: booking.status,
+                allowedTransitions: getValidTransitions(booking.status),
             });
         }
 
@@ -251,9 +311,9 @@ export const cancelBooking = async (req, res, next) => {
 // Helper function to get valid transitions
 const getValidTransitions = (currentStatus) => {
     const validTransitions = {
-        Requested: ['Accepted', 'Rejected', 'Cancelled'],
-        Accepted: ['Completed', 'Cancelled'],
-        Rejected: [],
+        Requested: ['Confirmed', 'Cancelled'],
+        Confirmed: ['In-progress', 'Cancelled'],
+        'In-progress': ['Completed'],
         Completed: [],
         Cancelled: [],
     };

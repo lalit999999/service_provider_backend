@@ -105,3 +105,78 @@ curl -X PUT http://localhost:3000/api/bookings/BOOKING_ID/status \
 # Cancel booking
 curl -X PUT http://localhost:3000/api/bookings/BOOKING_ID/cancel \
   -H "Authorization: Bearer $TOKEN"
+
+
+
+TOKEN="customer_jwt_token"
+SERVICE_ID="service_id"
+
+curl -X POST http://localhost:3000/api/bookings \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "serviceId": "'$SERVICE_ID'",
+    "address": "123 Main Street, Patna",
+    "dateTime": "2026-03-15T10:00:00Z",
+    "notes": "Please call before arrival"
+  }'
+
+
+  PROVIDER_TOKEN="provider_jwt_token"
+BOOKING_ID="booking_id"
+
+curl -X PATCH http://localhost:3000/api/bookings/$BOOKING_ID/accept \
+  -H "Authorization: Bearer $PROVIDER_TOKEN" \
+  -H "Content-Type: application/json"
+
+
+
+  # Update status (provider)
+PROVIDER_TOKEN="provider_jwt_token"
+curl -X PATCH http://localhost:3000/api/bookings/BOOKING_ID/status \
+  -H "Authorization: Bearer $PROVIDER_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "In-progress"}'
+
+# Cancel booking (customer - only if Requested or Confirmed)
+CUSTOMER_TOKEN="customer_jwt_token"
+curl -X PATCH http://localhost:3000/api/bookings/BOOKING_ID/cancel \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
+  -H "Content-Type: application/json"
+
+# Cancel booking (provider)
+curl -X PATCH http://localhost:3000/api/bookings/BOOKING_ID/cancel \
+  -H "Authorization: Bearer $PROVIDER_TOKEN" \
+  -H "Content-Type: application/json"
+
+
+
+# Create review (customer, after booking is Completed)
+TOKEN="customer_jwt_token"
+curl -X POST http://localhost:3000/api/reviews \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "bookingId": "booking_id",
+    "rating": 5,
+    "comment": "Excellent service! Provider was very professional and on time."
+  }'
+
+# Get reviews for a provider (public)
+curl -X GET http://localhost:3000/api/reviews/provider/PROVIDER_ID
+
+# Get review for a booking (public)
+curl -X GET http://localhost:3000/api/reviews/booking/BOOKING_ID
+
+# Update review (customer only)
+curl -X PUT http://localhost:3000/api/reviews/REVIEW_ID \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "rating": 4,
+    "comment": "Good service with minor delays."
+  }'
+
+# Delete review (customer only)
+curl -X DELETE http://localhost:3000/api/reviews/REVIEW_ID \
+  -H "Authorization: Bearer $TOKEN"

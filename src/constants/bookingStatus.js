@@ -1,20 +1,21 @@
 export const BOOKING_STATUS = {
     REQUESTED: 'Requested',
-    ACCEPTED: 'Accepted',
-    REJECTED: 'Rejected',
+    CONFIRMED: 'Confirmed',
+    IN_PROGRESS: 'In-progress',
     COMPLETED: 'Completed',
     CANCELLED: 'Cancelled',
 };
 
-// Validate status transitions
+// Strict state transitions
 export const isValidStatusTransition = (currentStatus, newStatus) => {
     const validTransitions = {
-        Requested: ['Accepted', 'Rejected', 'Cancelled'],
-        Accepted: ['Completed', 'Cancelled'],
-        Rejected: [],
+        Requested: ['Confirmed', 'Cancelled'],
+        Confirmed: ['In-progress', 'Cancelled'],
+        'In-progress': ['Completed'],
         Completed: [],
         Cancelled: [],
     };
 
     return validTransitions[currentStatus]?.includes(newStatus) || false;
 };
+
