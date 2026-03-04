@@ -16,7 +16,7 @@ export const uploadImage = async (fileBuffer, folder = 'service-provider') => {
     try {
         return new Promise((resolve, reject) => {
             const upload = cloudinary.uploader.upload_stream(
-                { folder, resource_type: 'auto' },
+                { folder: '/local_service_proveder/images', resource_type: 'auto' },
                 (error, result) => {
                     if (error) reject(error);
                     else resolve({

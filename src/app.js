@@ -6,7 +6,7 @@ import categoryRoutes from './routes/category.routes.js';
 import serviceRoutes from './routes/service.routes.js';
 import bookingRoutes from './routes/booking.routes.js';
 import reviewRoutes from './routes/review.routes.js';
-// import adminRoutes from './routes/admin.routes.js';
+import adminRoutes from './routes/admin.routes.js';
 
 
 const app = express();
@@ -20,7 +20,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/reviews', reviewRoutes);
-// app.use("/api/admin", adminRoutes);
+app.use('/api/admin', adminRoutes);
 
 
 // global error handler

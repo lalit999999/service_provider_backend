@@ -11,7 +11,7 @@ export const isValidStatusTransition = (currentStatus, newStatus) => {
     const validTransitions = {
         Requested: ['Confirmed', 'Cancelled'],
         Confirmed: ['In-progress', 'Cancelled'],
-        'In-progress': ['Completed'],
+        IN_PROGRESS: ['Completed'],
         Completed: [],
         Cancelled: [],
     };
