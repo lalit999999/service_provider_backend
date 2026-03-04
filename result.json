@@ -1,0 +1,32 @@
+[
+    {
+        "message": "User registered successfully",
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTgwYzUzMGU1ZjQ4NjViNTY1YjU3OCIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc3MjYyMDg4MywiZXhwIjoxNzczMjI1NjgzfQ.HrDKfLO2j-dsXieQrwUVwjws27Za3LPycxC7He0NYMg",
+        "user": {
+            "id": "69a80c530e5f4865b565b578",
+            "name": "John",
+            "email": "john@example.com",
+            "role": "customer"
+        }
+    },
+    {
+        "message": "User registered successfully",
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTgwYzUzMGU1ZjQ4NjViNTY1YjU3OCIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc3MjYyMDg4MywiZXhwIjoxNzczMjI1NjgzfQ.HrDKfLO2j-dsXieQrwUVwjws27Za3LPycxC7He0NYMg",
+        "user": {
+            "id": "69a80c530e5f4865b565b578",
+            "name": "John",
+            "email": "john@example.com",
+            "role": "customer"
+        }
+    },
+    {
+        "message": "Logged in successfully",
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTgwYzUzMGU1ZjQ4NjViNTY1YjU3OCIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc3MjYyMTAzNywiZXhwIjoxNzczMjI1ODM3fQ.6ecY8_1JsFRWxDO35g659aruo0rjdB43cDk7op8HxQg",
+        "user": {
+            "id": "69a80c530e5f4865b565b578",
+            "name": "John",
+            "email": "john@example.com",
+            "role": "customer"
+        }
+    }
+]
