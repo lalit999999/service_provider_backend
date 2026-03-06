@@ -30,15 +30,15 @@ const userSchema = new mongoose.Schema(
         },
         city: {
             type: String,
-            required: function () {
-                return this.role === "customer" || this.role === "provider";
-            }
+            // required: function () {
+            //     return this.role === "customer" || this.role === "provider";
+            // }
         },
         area: {
             type: String,
-            required: function () {
-                return this.role === "customer" || this.role === "provider";
-            }
+            // required: function () {
+            //     return this.role === "customer" || this.role === "provider";
+            // }
         },
         isApproved: {
             type: Boolean,

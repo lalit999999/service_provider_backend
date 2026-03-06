@@ -101,6 +101,84 @@ export const getDashboardStats = async (req, res, next) => {
     }
 };
 
+// Approve a provider
+export const approveProvider = async (req, res, next) => {
+    try {
+        const { providerId } = req.params;
+
+        const provider = await User.findById(providerId);
+
+        if (!provider) {
+            return res.status(404).json({ message: 'Provider not found' });
+        }
+
+        if (provider.role !== 'provider') {
+            return res.status(400).json({ message: 'User is not a provider' });
+        }
+
+        if (provider.isApproved) {
+            return res.status(400).json({ message: 'Provider is already approved' });
+        }
+
+        provider.isApproved = true;
+        await provider.save();
+
+        res.status(200).json({
+            message: 'Provider approved successfully',
+            provider: {
+                id: provider._id,
+                name: provider.name,
+                email: provider.email,
+                role: provider.role,
+                isApproved: provider.isApproved,
+                city: provider.city,
+                area: provider.area
+            }
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Reject a provider (set isApproved to false)
+export const rejectProvider = async (req, res, next) => {
+    try {
+        const { providerId } = req.params;
+
+        const provider = await User.findById(providerId);
+
+        if (!provider) {
+            return res.status(404).json({ message: 'Provider not found' });
+        }
+
+        if (provider.role !== 'provider') {
+            return res.status(400).json({ message: 'User is not a provider' });
+        }
+
+        if (!provider.isApproved) {
+            return res.status(400).json({ message: 'Provider is already not approved' });
+        }
+
+        provider.isApproved = false;
+        await provider.save();
+
+        res.status(200).json({
+            message: 'Provider rejected successfully',
+            provider: {
+                id: provider._id,
+                name: provider.name,
+                email: provider.email,
+                role: provider.role,
+                isApproved: provider.isApproved,
+                city: provider.city,
+                area: provider.area
+            }
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
 // Get all users with optional filtering
 export const getAllUsers = async (req, res, next) => {
     try {

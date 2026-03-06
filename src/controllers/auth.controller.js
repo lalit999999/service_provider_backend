@@ -45,6 +45,10 @@ export const register = async (req, res, next) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                city: user.city,
+                area: user.area,
+                isAvailable: user.isAvailable,
+                isApproved: user.isApproved,
             },
         });
     } catch (err) {
@@ -87,6 +91,10 @@ export const login = async (req, res, next) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                city: user.city,
+                area: user.area,
+                isAvailable: user.isAvailable,
+                isApproved: user.isApproved,
             },
         });
     } catch (err) {
@@ -155,6 +163,90 @@ export const uploadProfileImage = async (req, res, next) => {
                 role: user.role,
                 profileImage: user.profileImage,
             },
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Update user profile
+export const updateProfile = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const { name, city, area, currentPassword, newPassword } = req.body;
+
+        const user = await User.findById(userId).select('+password');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Update basic fields if provided
+        if (name) user.name = name.trim();
+        if (city) user.city = city.trim();
+        if (area) user.area = area.trim();
+
+        // Handle password change
+        if (newPassword) {
+            if (!currentPassword) {
+                return res.status(400).json({ message: 'Current password is required to change password' });
+            }
+
+            const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+            if (!isPasswordValid) {
+                return res.status(401).json({ message: 'Current password is incorrect' });
+            }
+
+            if (newPassword.length < 6) {
+                return res.status(400).json({ message: 'New password must be at least 6 characters' });
+            }
+
+            user.password = await bcrypt.hash(newPassword, 10);
+        }
+
+        await user.save();
+
+        res.status(200).json({
+            message: 'Profile updated successfully',
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                city: user.city,
+                area: user.area,
+                isApproved: user.isApproved,
+                isAvailable: user.isAvailable,
+                profileImage: user.profileImage || null,
+            },
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+// Update provider availability status
+export const updateAvailability = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const { isAvailable } = req.body;
+
+        if (typeof isAvailable !== 'boolean') {
+            return res.status(400).json({ message: 'isAvailable must be a boolean' });
+        }
+
+        const user = await User.findByIdAndUpdate(
+            userId,
+            { isAvailable },
+            { new: true, select: '-password' }
+        );
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({
+            message: 'Availability updated successfully',
+            isAvailable: user.isAvailable,
+            user,
         });
     } catch (err) {
         next(err);

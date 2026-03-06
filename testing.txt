@@ -1,184 +1,41 @@
-# Register
-curl -X POST http://localhost:3000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "John",
-    "email": "john@example.com",
-    "password": "pass123",
-    "role": "customer",
-    "city": "New York",
-    "area": "Manhattan"
-  }'
+Here’s a comprehensive table summarizing all backend routes in your project:
 
-# Login
-curl -X POST http://localhost:3000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "john@example.com",
-    "password": "pass123"
-  }'
-# logout
-curl -X POST http://localhost:3000/api/auth/logout \
-  -H "Content-Type: application/json"
-
-
-# Get all services
-curl -X GET http://localhost:3000/api/services
-
-# Filter by category
-curl -X GET "http://localhost:3000/api/services?category=plumbing"
-
-# Filter by city
-curl -X GET "http://localhost:3000/api/services?city=Patna"
-
-# Filter by both category and city
-curl -X GET "http://localhost:3000/api/services?category=plumbing&city=Patna"
-
-# Get single service
-curl -X GET http://localhost:3000/api/services/SERVICE_ID
-
-# Create service (provider token required)
-TOKEN="your_provider_jwt_token"
-CATEGORY_ID="existing_category_id"
-
-curl -X POST http://localhost:3000/api/services \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "categoryId": "'$CATEGORY_ID'",
-    "title": "Professional Plumbing",
-    "description": "Expert plumbing repairs and installations",
-    "basePrice": 500
-  }'
-
-# Update service (provider only)
-curl -X PUT http://localhost:3000/api/services/SERVICE_ID \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Premium Plumbing Services",
-    "description": "High-quality plumbing solutions",
-    "basePrice": 600
-  }'
-
-# Delete service (provider only)
-curl -X DELETE http://localhost:3000/api/services/SERVICE_ID \
-  -H "Authorization: Bearer $TOKEN"
-
-
-  # Create booking (customer token required)
-TOKEN="customer_jwt_token"
-SERVICE_ID="service_id"
-
-curl -X POST http://localhost:3000/api/bookings \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "serviceId": "'$SERVICE_ID'",
-    "address": "123 Main Street, Patna",
-    "dateTime": "2026-03-15T10:00:00Z",
-    "notes": "Please call before arrival",
-    "priceAtBooking": 500
-  }'
-
-# Get my bookings
-curl -X GET http://localhost:3000/api/bookings \
-  -H "Authorization: Bearer $TOKEN"
-
-# Get single booking
-curl -X GET http://localhost:3000/api/bookings/BOOKING_ID \
-  -H "Authorization: Bearer $TOKEN"
-
-# Provider accepts booking
-PROVIDER_TOKEN="provider_jwt_token"
-curl -X PUT http://localhost:3000/api/bookings/BOOKING_ID/status \
-  -H "Authorization: Bearer $PROVIDER_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"status": "Accepted"}'
-
-# Provider marks booking completed
-curl -X PUT http://localhost:3000/api/bookings/BOOKING_ID/status \
-  -H "Authorization: Bearer $PROVIDER_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"status": "Completed"}'
-
-# Cancel booking
-curl -X PUT http://localhost:3000/api/bookings/BOOKING_ID/cancel \
-  -H "Authorization: Bearer $TOKEN"
-
-
-
-TOKEN="customer_jwt_token"
-SERVICE_ID="service_id"
-
-curl -X POST http://localhost:3000/api/bookings \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "serviceId": "'$SERVICE_ID'",
-    "address": "123 Main Street, Patna",
-    "dateTime": "2026-03-15T10:00:00Z",
-    "notes": "Please call before arrival"
-  }'
-
-
-  PROVIDER_TOKEN="provider_jwt_token"
-BOOKING_ID="booking_id"
-
-curl -X PATCH http://localhost:3000/api/bookings/$BOOKING_ID/accept \
-  -H "Authorization: Bearer $PROVIDER_TOKEN" \
-  -H "Content-Type: application/json"
-
-
-
-  # Update status (provider)
-PROVIDER_TOKEN="provider_jwt_token"
-curl -X PATCH http://localhost:3000/api/bookings/BOOKING_ID/status \
-  -H "Authorization: Bearer $PROVIDER_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"status": "In-progress"}'
-
-# Cancel booking (customer - only if Requested or Confirmed)
-CUSTOMER_TOKEN="customer_jwt_token"
-curl -X PATCH http://localhost:3000/api/bookings/BOOKING_ID/cancel \
-  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
-  -H "Content-Type: application/json"
-
-# Cancel booking (provider)
-curl -X PATCH http://localhost:3000/api/bookings/BOOKING_ID/cancel \
-  -H "Authorization: Bearer $PROVIDER_TOKEN" \
-  -H "Content-Type: application/json"
-
-
-
-# Create review (customer, after booking is Completed)
-TOKEN="customer_jwt_token"
-curl -X POST http://localhost:3000/api/reviews \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "bookingId": "booking_id",
-    "rating": 5,
-    "comment": "Excellent service! Provider was very professional and on time."
-  }'
-
-# Get reviews for a provider (public)
-curl -X GET http://localhost:3000/api/reviews/provider/PROVIDER_ID
-
-# Get review for a booking (public)
-curl -X GET http://localhost:3000/api/reviews/booking/BOOKING_ID
-
-# Update review (customer only)
-curl -X PUT http://localhost:3000/api/reviews/REVIEW_ID \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "rating": 4,
-    "comment": "Good service with minor delays."
-  }'
-
-# Delete review (customer only)
-curl -X DELETE http://localhost:3000/api/reviews/REVIEW_ID \
-  -H "Authorization: Bearer $TOKEN"
-
-  /home/lalit79/.claude/plans/wobbly-orbiting-prism.md
+Method	Endpoint	Auth Required	Request Body	Response
+POST	/auth/register	No	name, email, password, role	user, token
+POST	/auth/login	No	email, password	user, token
+POST	/auth/logout	No	none	success message
+PUT	/auth/profile	Yes	profile fields	updated user
+POST	/auth/profile-image	Yes	image (multipart/form-data)	image URL, user
+PUT	/auth/:userId/profile-image	Yes	image (multipart/form-data)	image URL, user
+GET	/services	No	none	list of services
+GET	/services/:id	No	none	service object
+POST	/services	Yes (Provider)	service fields	created service
+PUT	/services/:id	Yes (Provider)	service fields	updated service
+DELETE	/services/:id	Yes (Provider)	none	success message
+GET	/categories	No	none	list of categories
+GET	/categories/:id	No	none	category object
+POST	/categories	Yes (Admin)	category fields	created category
+PUT	/categories/:id	Yes (Admin)	category fields	updated category
+DELETE	/categories/:id	Yes (Admin)	none	success message
+POST	/bookings	Yes (Customer)	serviceId, address, dateTime	booking object
+GET	/bookings	Yes	none	list of bookings
+GET	/bookings/:id	Yes	none	booking object
+PATCH	/bookings/:id/accept	Yes (Provider)	none	updated booking
+PATCH	/bookings/:id/status	Yes (Provider)	status	updated booking
+PATCH	/bookings/:id/cancel	Yes	none	updated booking
+POST	/bookings/:bookingId/issue-image	Yes	image (multipart/form-data)	image URL, booking
+POST	/bookings/:bookingId/work-image	Yes	image (multipart/form-data)	image URL, booking
+GET	/reviews/provider/:providerId	No	none	list of reviews
+GET	/reviews/booking/:bookingId	No	none	review object
+POST	/reviews	Yes (Customer)	rating, comment, bookingId	review object
+PUT	/reviews/:id	Yes (Customer)	rating, comment	updated review
+DELETE	/reviews/:id	Yes (Customer)	none	success message
+GET	/admin/stats	Yes (Admin)	none	stats object
+GET	/admin/users	Yes (Admin)	none	list of users
+GET	/admin/bookings	Yes (Admin)	none	list of bookings
+PATCH	/admin/users/:providerid/approve	Yes (Admin)	none	updated user
+PATCH	/admin/users/:providerId/reject	Yes (Admin)	none	updated user
+Authorization header (Bearer token) is required for all routes marked "Yes" in Auth Required.
+Request bodies are typically JSON except for image uploads (multipart/form-data).
+Responses are JSON objects, usually containing the main resource, status, and sometimes a token.
+Let me know if you want details for any specific route or controller
