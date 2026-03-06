@@ -13,8 +13,8 @@ export const register = async (req, res, next) => {
         // Normalize email
         email = email ? email.trim().toLowerCase() : '';
 
-        // Check if user exists
-        const existingUser = await User.findOne({ email });
+        // Check if user exists - use case-insensitive regex query
+        const existingUser = await User.findOne({ email: new RegExp(`^${email}$`, 'i') });
         if (existingUser) {
             return res.status(400).json({ message: 'Email already registered' });
         }
@@ -78,8 +78,8 @@ export const login = async (req, res, next) => {
         // Normalize email
         email = email.trim().toLowerCase();
 
-        // Find user (include password field)
-        const user = await User.findOne({ email }).select('+password');
+        // Find user (include password field) - use case-insensitive regex query
+        const user = await User.findOne({ email: new RegExp(`^${email}$`, 'i') }).select('+password');
         if (!user) {
             return res.status(401).json({ message: 'Invalid email or password' });
         }
@@ -282,7 +282,8 @@ export const forgotPassword = async (req, res, next) => {
         // Normalize email
         email = email.trim().toLowerCase();
 
-        const user = await User.findOne({ email });
+        // Use case-insensitive regex query to handle any case variations
+        const user = await User.findOne({ email: new RegExp(`^${email}$`, 'i') });
         if (!user) {
             // Don't reveal if email exists or not for security
             return res.status(200).json({
@@ -347,7 +348,8 @@ export const resetPassword = async (req, res, next) => {
         }
 
         const normalizedEmail = email.trim().toLowerCase();
-        const user = await User.findOne({ email: normalizedEmail });
+        // Use case-insensitive regex query to be absolutely sure
+        const user = await User.findOne({ email: new RegExp(`^${normalizedEmail}$`, 'i') });
         if (!user || !user.resetToken) {
             return res.status(400).json({
                 message: 'Invalid email or reset code - no reset request found'
