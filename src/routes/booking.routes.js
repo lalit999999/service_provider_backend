@@ -6,6 +6,7 @@ import {
     acceptBooking,
     updateBookingStatus,
     cancelBooking,
+    rescheduleBooking,
     uploadCustomerImage,
     uploadProviderWorkImage,
 } from '../controllers/booking.controller.js';
@@ -36,6 +37,9 @@ router.patch(
 
 // Cancel booking (customer or provider)
 router.patch('/:id/cancel', authMiddleware, cancelBooking);
+
+// Reschedule booking (customer only)
+router.patch('/:id/reschedule', authMiddleware, roleMiddleware(['customer']), rescheduleBooking);
 
 // Image upload routes
 router.post('/:bookingId/issue-image', authMiddleware, uploadSingle, uploadCustomerImage);

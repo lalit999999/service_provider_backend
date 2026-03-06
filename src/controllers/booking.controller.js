@@ -328,6 +328,65 @@ export const cancelBooking = async (req, res, next) => {
     }
 };
 
+// Reschedule booking (customer only)
+export const rescheduleBooking = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { dateTime } = req.body;
+        const customerId = req.user.id;
+
+        // Validation
+        if (!dateTime) {
+            return res.status(400).json({ message: 'Please provide new dateTime' });
+        }
+
+        const booking = await Booking.findById(id);
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        // Check authorization - only customer can reschedule their booking
+        if (booking.customerId.toString() !== customerId) {
+            return res
+                .status(403)
+                .json({ message: 'Only customer can reschedule their booking' });
+        }
+
+        // ✅ Customer can only reschedule if status is Requested or Confirmed
+        if (
+            booking.status !== BOOKING_STATUS.REQUESTED &&
+            booking.status !== BOOKING_STATUS.CONFIRMED
+        ) {
+            return res.status(400).json({
+                message: `Bookings can only be rescheduled with status: ${BOOKING_STATUS.REQUESTED} or ${BOOKING_STATUS.CONFIRMED}`,
+                currentStatus: booking.status,
+            });
+        }
+
+        // Update dateTime
+        const newDate = new Date(dateTime);
+        if (isNaN(newDate.getTime())) {
+            return res.status(400).json({ message: 'Invalid dateTime format' });
+        }
+
+        booking.dateTime = newDate;
+        await booking.save();
+
+        await booking.populate([
+            { path: 'customerId', select: 'name email city area' },
+            { path: 'providerId', select: 'name email city area' },
+            { path: 'serviceId', select: 'title description basePrice' },
+        ]);
+
+        res.status(200).json({
+            message: 'Booking rescheduled successfully',
+            booking,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
 // Helper function to get valid transitions
 const getValidTransitions = (currentStatus) => {
     const validTransitions = {
