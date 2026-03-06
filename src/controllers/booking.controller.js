@@ -11,9 +11,23 @@ export const createBooking = async (req, res, next) => {
 
         // Validation
         if (!serviceId || !address || !dateTime) {
+            console.error('Booking validation failed:', {
+                received: req.body,
+                serviceId,
+                address,
+                dateTime,
+                customerId,
+            });
             return res
                 .status(400)
-                .json({ message: 'Please provide serviceId, address, and dateTime' });
+                .json({
+                    message: 'Please provide serviceId, address, and dateTime',
+                    missing: {
+                        serviceId: !serviceId,
+                        address: !address,
+                        dateTime: !dateTime,
+                    }
+                });
         }
 
         // Get service to find provider
