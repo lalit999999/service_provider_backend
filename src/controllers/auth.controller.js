@@ -8,7 +8,10 @@ import { isValidObjectId } from '../utils/validateObjectId.js';
 // Register
 export const register = async (req, res, next) => {
     try {
-        const { name, email, password, role, city, area } = req.body;
+        let { name, email, password, role, city, area } = req.body;
+
+        // Normalize email
+        email = email ? email.trim().toLowerCase() : '';
 
         // Check if user exists
         const existingUser = await User.findOne({ email });
@@ -63,14 +66,17 @@ export const register = async (req, res, next) => {
 // Login
 export const login = async (req, res, next) => {
     try {
-        const { email, password } = req.body;
+        let { email, password } = req.body;
 
         // Validation
-        if (!email || !password) {
+        if (!email || !email.trim() || !password) {
             return res
                 .status(400)
                 .json({ message: 'Please provide email and password' });
         }
+
+        // Normalize email
+        email = email.trim().toLowerCase();
 
         // Find user (include password field)
         const user = await User.findOne({ email }).select('+password');
@@ -267,17 +273,20 @@ export const updateAvailability = async (req, res, next) => {
 // Forgot Password
 export const forgotPassword = async (req, res, next) => {
     try {
-        const { email } = req.body;
+        let { email } = req.body;
 
-        if (!email) {
+        if (!email || !email.trim()) {
             return res.status(400).json({ message: 'Please provide an email address' });
         }
+
+        // Normalize email
+        email = email.trim().toLowerCase();
 
         const user = await User.findOne({ email });
         if (!user) {
             // Don't reveal if email exists or not for security
             return res.status(200).json({
-                message: 'If an account with this email exists, you will receive a password reset link'
+                message: 'If an account with this email exists, you will receive a password reset code via email. Please check your inbox and spam folder.'
             });
         }
 
@@ -300,9 +309,7 @@ export const forgotPassword = async (req, res, next) => {
         }
 
         res.status(200).json({
-            message: 'If an account with this email exists, you will receive a password reset link',
-            // In development, optionally return the token for testing
-            ...(process.env.NODE_ENV === 'development' && { resetToken })
+            message: 'If an account with this email exists, you will receive a password reset code via email. Please check your inbox and spam folder.'
         });
     } catch (err) {
         next(err);
