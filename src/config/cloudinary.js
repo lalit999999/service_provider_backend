@@ -1,4 +1,14 @@
+import dotenv from 'dotenv';
 import { v2 as cloudinary } from 'cloudinary';
+
+// Load env variables if not already loaded
+dotenv.config();
+
+console.log('Cloudinary config:', {
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY ? '***' : 'missing',
+    api_secret: process.env.CLOUDINARY_API_SECRET ? '***' : 'missing'
+});
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -18,13 +28,23 @@ export const uploadImage = async (fileBuffer, folder = 'service-provider') => {
             const upload = cloudinary.uploader.upload_stream(
                 { folder: '/local_service_proveder/images', resource_type: 'auto' },
                 (error, result) => {
-                    if (error) reject(error);
-                    else resolve({
-                        url: result.secure_url,
-                        publicId: result.public_id
-                    });
+                    if (error) {
+                        console.error('Cloudinary upload stream error:', error);
+                        reject(error);
+                    }
+                    else {
+                        console.log('Cloudinary upload result:', result.public_id);
+                        resolve({
+                            url: result.secure_url,
+                            publicId: result.public_id
+                        });
+                    }
                 }
             );
+            upload.on('error', (err) => {
+                console.error('Cloudinary stream error:', err);
+                reject(err);
+            });
             upload.end(fileBuffer);
         });
     } catch (error) {
