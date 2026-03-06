@@ -1,5 +1,5 @@
 import Booking from '../models/Booking.js';
-import { isValidStatusTransition, BOOKING_STATUS } from '../constants/bookingStatus.js';
+import { isValidStatusTransition, getValidTransitions, BOOKING_STATUS } from '../constants/bookingStatus.js';
 import User from '../models/User.js';
 import { uploadImage, deleteImage } from '../config/cloudinary.js';
 
@@ -189,8 +189,8 @@ export const acceptBooking = async (req, res, next) => {
             });
         }
 
-        // Update status to Confirmed
-        booking.status = BOOKING_STATUS.CONFIRMED;
+        // Update status to Accepted
+        booking.status = BOOKING_STATUS.ACCEPTED;
         await booking.save();
 
         await booking.populate([
