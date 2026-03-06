@@ -34,6 +34,7 @@ export const createBooking = async (req, res, next) => {
         const Service = (await import('../models/Service.js')).default;
         const service = await Service.findById(serviceId);
         if (!service) {
+            console.error('Service not found:', { serviceId });
             return res.status(404).json({ message: 'Service not found' });
         }
 
@@ -41,6 +42,7 @@ export const createBooking = async (req, res, next) => {
 
         // ✅ Check: Customer is not booking their own service
         if (customerId === providerId.toString()) {
+            console.warn('Customer trying to book own service:', { customerId, providerId });
             return res
                 .status(400)
                 .json({ message: 'You cannot book your own service' });
@@ -49,11 +51,13 @@ export const createBooking = async (req, res, next) => {
         // ✅ Check: Provider exists
         const provider = await User.findById(providerId);
         if (!provider) {
+            console.error('Provider not found:', { providerId });
             return res.status(404).json({ message: 'Provider not found' });
         }
 
         // ✅ Check: Provider is approved
         if (!provider.isApproved) {
+            console.warn('Provider not approved:', { providerId, isApproved: provider.isApproved });
             return res
                 .status(400)
                 .json({ message: 'This provider is not yet approved' });
@@ -61,6 +65,7 @@ export const createBooking = async (req, res, next) => {
 
         // ✅ Check: Provider is available
         if (!provider.isAvailable) {
+            console.warn('Provider unavailable:', { providerId, isAvailable: provider.isAvailable });
             return res
                 .status(400)
                 .json({ message: 'This provider is currently unavailable' });
