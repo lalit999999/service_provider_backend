@@ -18,7 +18,7 @@ router.get('/users', ...adminAuth, getAllUsers);
 router.get('/bookings', ...adminAuth, getAllBookings);
 
 // Provider approval management
-router.patch('/users/:providerid/approve', ...adminAuth, approveProvider);
+router.patch('/users/:providerId/approve', ...adminAuth, approveProvider);
 router.patch('/users/:providerId/reject', ...adminAuth, rejectProvider);
 
 
