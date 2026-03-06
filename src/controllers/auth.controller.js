@@ -295,10 +295,15 @@ export const forgotPassword = async (req, res, next) => {
         const resetToken = Math.floor(1000 + Math.random() * 9000).toString();
         const resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
+        console.log('Forgot password request for:', email);
+        console.log('Generated reset token:', resetToken);
+
         // Store reset token and expiry
         user.resetToken = resetToken;
         user.resetTokenExpiry = resetTokenExpiry;
         await user.save();
+
+        console.log('Reset token saved for user:', email);
 
         try {
             // Send password reset email
@@ -321,6 +326,8 @@ export const forgotPassword = async (req, res, next) => {
 export const resetPassword = async (req, res, next) => {
     try {
         const { email, resetToken, newPassword } = req.body;
+
+        console.log('Reset password request:', { email, resetToken: resetToken ? '[REDACTED]' : 'missing', newPassword: newPassword ? '[REDACTED]' : 'missing' });
 
         // Validate all required fields
         if (!email || !email.trim()) {
@@ -348,8 +355,16 @@ export const resetPassword = async (req, res, next) => {
         }
 
         const normalizedEmail = email.trim().toLowerCase();
+        console.log('Looking for user with email:', normalizedEmail);
+
         // Use case-insensitive regex query to be absolutely sure
         const user = await User.findOne({ email: new RegExp(`^${normalizedEmail}$`, 'i') });
+
+        console.log('User found:', !!user);
+        if (user) {
+            console.log('User has resetToken:', !!user.resetToken);
+        }
+
         if (!user || !user.resetToken) {
             return res.status(400).json({
                 message: 'Invalid email or reset code - no reset request found'
