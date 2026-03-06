@@ -42,6 +42,7 @@ export const register = async (req, res, next) => {
                 area: user.area,
                 isAvailable: user.isAvailable,
                 isApproved: user.isApproved,
+                profileImage: user.profileImage || null,
             },
         });
     } catch (err) {
@@ -88,6 +89,7 @@ export const login = async (req, res, next) => {
                 area: user.area,
                 isAvailable: user.isAvailable,
                 isApproved: user.isApproved,
+                profileImage: user.profileImage || null,
             },
         });
     } catch (err) {
@@ -149,6 +151,7 @@ export const uploadProfileImage = async (req, res, next) => {
 
         res.status(200).json({
             message: 'Profile image uploaded successfully',
+            url: uploadResult.url,
             user: {
                 id: user._id,
                 name: user.name,
