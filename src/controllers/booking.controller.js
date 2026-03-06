@@ -543,3 +543,49 @@ export const uploadProviderWorkImage = async (req, res, next) => {
         next(err);
     }
 };
+
+// Add notes to booking (provider only)
+export const addNotes = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { workNotes } = req.body;
+        const userId = req.user.id;
+
+        // Validation
+        if (!workNotes || !workNotes.trim()) {
+            return res.status(400).json({ message: 'Please provide work notes' });
+        }
+
+        // Validate ObjectId
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ message: 'Invalid booking ID format' });
+        }
+
+        const booking = await Booking.findById(id);
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        // Only provider can add notes
+        if (booking.providerId.toString() !== userId) {
+            return res.status(403).json({ message: 'Only provider can add notes to this booking' });
+        }
+
+        // Update work notes
+        booking.workNotes = workNotes.trim();
+        await booking.save();
+
+        await booking.populate([
+            { path: 'customerId', select: 'name email city area' },
+            { path: 'providerId', select: 'name email city area' },
+            { path: 'serviceId', select: 'title description basePrice' },
+        ]);
+
+        res.status(200).json({
+            message: 'Work notes added successfully',
+            booking,
+        });
+    } catch (err) {
+        next(err);
+    }
+};

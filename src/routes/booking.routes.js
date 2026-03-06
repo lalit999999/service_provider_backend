@@ -9,6 +9,7 @@ import {
     rescheduleBooking,
     uploadCustomerImage,
     uploadProviderWorkImage,
+    addNotes,
 } from '../controllers/booking.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { roleMiddleware } from '../middlewares/role.middleware.js';
@@ -40,6 +41,9 @@ router.patch('/:id/cancel', authMiddleware, cancelBooking);
 
 // Reschedule booking (customer only)
 router.patch('/:id/reschedule', authMiddleware, roleMiddleware(['customer']), rescheduleBooking);
+
+// Add notes (provider only)
+router.patch('/:id/notes', authMiddleware, roleMiddleware(['provider']), addNotes);
 
 // Image upload routes
 router.post('/:bookingId/issue-image', authMiddleware, uploadSingle, uploadCustomerImage);

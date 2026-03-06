@@ -29,6 +29,10 @@ const bookingSchema = new mongoose.Schema(
             type: String,
             default: '',
         },
+        workNotes: {
+            type: String,
+            default: '',
+        },
         priceAtBooking: {
             type: Number,
             required: [true, 'Please provide price at booking'],
@@ -36,7 +40,7 @@ const bookingSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ['Requested', 'Accepted', 'Rejected', 'Completed', 'Cancelled'],
+            enum: ['Requested', 'Accepted', 'In-progress', 'Rejected', 'Completed', 'Cancelled'],
             default: 'Requested',
         },
         customerImage: {

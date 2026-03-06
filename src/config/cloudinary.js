@@ -4,12 +4,6 @@ import { v2 as cloudinary } from 'cloudinary';
 // Load env variables if not already loaded
 dotenv.config();
 
-console.log('Cloudinary config:', {
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY ? '***' : 'missing',
-    api_secret: process.env.CLOUDINARY_API_SECRET ? '***' : 'missing'
-});
-
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
@@ -33,7 +27,6 @@ export const uploadImage = async (fileBuffer, folder = 'service-provider') => {
                         reject(error);
                     }
                     else {
-                        console.log('Cloudinary upload result:', result.public_id);
                         resolve({
                             url: result.secure_url,
                             publicId: result.public_id

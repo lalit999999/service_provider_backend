@@ -1,6 +1,7 @@
 export const BOOKING_STATUS = {
     REQUESTED: 'Requested',
     ACCEPTED: 'Accepted',
+    IN_PROGRESS: 'In-progress',
     REJECTED: 'Rejected',
     COMPLETED: 'Completed',
     CANCELLED: 'Cancelled',
@@ -10,7 +11,8 @@ export const BOOKING_STATUS = {
 export const isValidStatusTransition = (currentStatus, newStatus) => {
     const validTransitions = {
         Requested: ['Accepted', 'Cancelled'],
-        Accepted: ['Completed', 'Cancelled'],
+        Accepted: ['In-progress', 'Cancelled'],
+        'In-progress': ['Completed', 'Cancelled'],
         Rejected: [],
         Completed: [],
         Cancelled: [],
@@ -23,7 +25,8 @@ export const isValidStatusTransition = (currentStatus, newStatus) => {
 export const getValidTransitions = (currentStatus) => {
     const validTransitions = {
         Requested: ['Accepted', 'Cancelled'],
-        Accepted: ['Completed', 'Cancelled'],
+        Accepted: ['In-progress', 'Cancelled'],
+        'In-progress': ['Completed', 'Cancelled'],
         Rejected: [],
         Completed: [],
         Cancelled: [],
