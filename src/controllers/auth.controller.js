@@ -248,3 +248,98 @@ export const updateAvailability = async (req, res, next) => {
         next(err);
     }
 };
+
+// Forgot Password
+export const forgotPassword = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: 'Please provide an email address' });
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            // Don't reveal if email exists or not for security
+            return res.status(200).json({
+                message: 'If an account with this email exists, you will receive a password reset link'
+            });
+        }
+
+        // Generate a simple reset token (4-digit code)
+        const resetToken = Math.floor(1000 + Math.random() * 9000).toString();
+        const resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+        // Store reset token and expiry (note: in production, use database or Redis)
+        user.resetToken = resetToken;
+        user.resetTokenExpiry = resetTokenExpiry;
+        await user.save();
+
+        // In production, send email with reset link and token
+        // For now, just log it for development
+        console.log(`Password reset code for ${email}: ${resetToken}`);
+
+        res.status(200).json({
+            message: 'If an account with this email exists, you will receive a password reset code',
+            // In development, return the token for testing
+            ...(process.env.NODE_ENV === 'development' && { resetToken })
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Reset Password
+export const resetPassword = async (req, res, next) => {
+    try {
+        const { email, resetToken, newPassword } = req.body;
+
+        if (!email || !resetToken || !newPassword) {
+            return res.status(400).json({
+                message: 'Email, reset code, and new password are required'
+            });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({
+                message: 'Password must be at least 6 characters'
+            });
+        }
+
+        const user = await User.findOne({ email });
+        if (!user || !user.resetToken) {
+            return res.status(400).json({
+                message: 'Invalid email or reset code'
+            });
+        }
+
+        // Check if reset token matches and hasn't expired
+        if (user.resetToken !== resetToken) {
+            return res.status(400).json({
+                message: 'Invalid reset code'
+            });
+        }
+
+        if (new Date() > user.resetTokenExpiry) {
+            user.resetToken = null;
+            user.resetTokenExpiry = null;
+            await user.save();
+            return res.status(400).json({
+                message: 'Reset code has expired. Please request a new one.'
+            });
+        }
+
+        // Update password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        user.resetToken = null;
+        user.resetTokenExpiry = null;
+        await user.save();
+
+        res.status(200).json({
+            message: 'Password reset successfully. You can now log in with your new password.'
+        });
+    } catch (err) {
+        next(err);
+    }
+};

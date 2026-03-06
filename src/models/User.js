@@ -52,6 +52,14 @@ const userSchema = new mongoose.Schema(
             url: String,
             uploadedAt: Date,
         },
+        resetToken: {
+            type: String,
+            select: false,
+        },
+        resetTokenExpiry: {
+            type: Date,
+            select: false,
+        },
     },
     { timestamps: true }
 );
