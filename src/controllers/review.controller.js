@@ -1,5 +1,6 @@
 import Review from '../models/Review.js';
 import Booking from '../models/Booking.js';
+import mongoose from 'mongoose';
 import { BOOKING_STATUS } from '../constants/bookingStatus.js';
 
 // Create review (customer only, after booking is completed)
@@ -75,10 +76,17 @@ export const getProviderReviews = async (req, res, next) => {
     try {
         const { providerId } = req.params;
 
+        // Validate providerId is a valid ObjectId
+        if (!mongoose.Types.ObjectId.isValid(providerId)) {
+            return res.status(400).json({ message: 'Invalid provider ID' });
+        }
+
+        const providerObjectId = new mongoose.Types.ObjectId(providerId);
+
         // Use MongoDB aggregation pipeline to calculate stats
         const aggregationResult = await Review.aggregate([
             {
-                $match: { providerId: new (require('mongoose').Types.ObjectId)(providerId) },
+                $match: { providerId: providerObjectId },
             },
             {
                 $facet: {
