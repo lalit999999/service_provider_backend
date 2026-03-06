@@ -1,6 +1,7 @@
 import Service from '../models/Service.js';
 import User from '../models/User.js';
 import Category from '../models/Category.js';
+import { isValidObjectId } from '../utils/validateObjectId.js';
 
 // Create service (provider only)
 export const createService = async (req, res, next) => {
@@ -81,6 +82,11 @@ export const getServiceById = async (req, res, next) => {
     try {
         const { id } = req.params;
 
+        // Validate ObjectId
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ message: 'Invalid service ID format' });
+        }
+
         const service = await Service.findById(id).populate([
             { path: 'providerId', select: 'name email city area' },
             { path: 'categoryId', select: 'name description' },
@@ -105,6 +111,11 @@ export const updateService = async (req, res, next) => {
         const { id } = req.params;
         const { title, description, basePrice } = req.body;
         const providerId = req.user.id;
+
+        // Validate ObjectId
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ message: 'Invalid service ID format' });
+        }
 
         // Check if service exists and belongs to this provider
         const service = await Service.findById(id);
@@ -142,6 +153,11 @@ export const deleteService = async (req, res, next) => {
     try {
         const { id } = req.params;
         const providerId = req.user.id;
+
+        // Validate ObjectId
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ message: 'Invalid service ID format' });
+        }
 
         // Check if service exists and belongs to this provider
         const service = await Service.findById(id);

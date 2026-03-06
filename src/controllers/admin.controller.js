@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 import Booking from '../models/Booking.js';
+import { isValidObjectId } from '../utils/validateObjectId.js';
 
 // Get dashboard stats with optional date filtering
 export const getDashboardStats = async (req, res, next) => {
@@ -106,6 +107,11 @@ export const approveProvider = async (req, res, next) => {
     try {
         const { providerId } = req.params;
 
+        // Validate ObjectId
+        if (!isValidObjectId(providerId)) {
+            return res.status(400).json({ message: 'Invalid provider ID format' });
+        }
+
         const provider = await User.findById(providerId);
 
         if (!provider) {
@@ -144,6 +150,11 @@ export const approveProvider = async (req, res, next) => {
 export const rejectProvider = async (req, res, next) => {
     try {
         const { providerId } = req.params;
+
+        // Validate ObjectId
+        if (!isValidObjectId(providerId)) {
+            return res.status(400).json({ message: 'Invalid provider ID format' });
+        }
 
         const provider = await User.findById(providerId);
 

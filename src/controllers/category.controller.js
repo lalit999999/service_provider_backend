@@ -1,4 +1,5 @@
 import Category from '../models/Category.js';
+import { isValidObjectId } from '../utils/validateObjectId.js';
 
 // Create category (admin only)
 export const createCategory = async (req, res, next) => {
@@ -50,6 +51,11 @@ export const getCategoryById = async (req, res, next) => {
     try {
         const { id } = req.params;
 
+        // Validate ObjectId
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ message: 'Invalid category ID format' });
+        }
+
         const category = await Category.findById(id);
         if (!category) {
             return res.status(404).json({ message: 'Category not found' });
@@ -69,6 +75,11 @@ export const updateCategory = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { name, description } = req.body;
+
+        // Validate ObjectId
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ message: 'Invalid category ID format' });
+        }
 
         const category = await Category.findByIdAndUpdate(
             id,
@@ -93,6 +104,11 @@ export const updateCategory = async (req, res, next) => {
 export const deleteCategory = async (req, res, next) => {
     try {
         const { id } = req.params;
+
+        // Validate ObjectId
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ message: 'Invalid category ID format' });
+        }
 
         const category = await Category.findByIdAndDelete(id);
         if (!category) {

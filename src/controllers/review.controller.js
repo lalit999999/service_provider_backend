@@ -2,6 +2,7 @@ import Review from '../models/Review.js';
 import Booking from '../models/Booking.js';
 import mongoose from 'mongoose';
 import { BOOKING_STATUS } from '../constants/bookingStatus.js';
+import { isValidObjectId } from '../utils/validateObjectId.js';
 
 // Create review (customer only, after booking is completed)
 export const createReview = async (req, res, next) => {
@@ -180,6 +181,11 @@ export const getBookingReview = async (req, res, next) => {
     try {
         const { bookingId } = req.params;
 
+        // Validate ObjectId
+        if (!isValidObjectId(bookingId)) {
+            return res.status(400).json({ message: 'Invalid booking ID format' });
+        }
+
         const review = await Review.findOne({ bookingId }).populate([
             { path: 'bookingId', select: '_id dateTime' },
             { path: 'providerId', select: 'name email' },
@@ -215,6 +221,11 @@ export const updateReview = async (req, res, next) => {
 
         if (rating && (rating < 1 || rating > 5)) {
             return res.status(400).json({ message: 'Rating must be between 1 and 5' });
+        }
+
+        // Validate ObjectId
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ message: 'Invalid review ID format' });
         }
 
         const review = await Review.findById(id);
@@ -255,6 +266,11 @@ export const deleteReview = async (req, res, next) => {
     try {
         const { id } = req.params;
         const customerId = req.user.id;
+
+        // Validate ObjectId
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ message: 'Invalid review ID format' });
+        }
 
         const review = await Review.findById(id);
         if (!review) {

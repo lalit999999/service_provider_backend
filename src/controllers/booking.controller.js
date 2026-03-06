@@ -2,6 +2,7 @@ import Booking from '../models/Booking.js';
 import { isValidStatusTransition, getValidTransitions, BOOKING_STATUS } from '../constants/bookingStatus.js';
 import User from '../models/User.js';
 import { uploadImage, deleteImage } from '../config/cloudinary.js';
+import { isValidObjectId } from '../utils/validateObjectId.js';
 
 // Create booking (customer only)
 export const createBooking = async (req, res, next) => {
@@ -136,6 +137,11 @@ export const getBookingById = async (req, res, next) => {
         const { id } = req.params;
         const userId = req.user.id;
 
+        // Validate ObjectId
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ message: 'Invalid booking ID format' });
+        }
+
         const booking = await Booking.findById(id).populate([
             { path: 'customerId', select: 'name email city area' },
             { path: 'providerId', select: 'name email city area' },
@@ -168,6 +174,11 @@ export const acceptBooking = async (req, res, next) => {
     try {
         const { id } = req.params;
         const userId = req.user.id;
+
+        // Validate ObjectId
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ message: 'Invalid booking ID format' });
+        }
 
         const booking = await Booking.findById(id);
         if (!booking) {
@@ -220,6 +231,11 @@ export const updateBookingStatus = async (req, res, next) => {
             return res.status(400).json({ message: 'Please provide new status' });
         }
 
+        // Validate ObjectId
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ message: 'Invalid booking ID format' });
+        }
+
         const booking = await Booking.findById(id);
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found' });
@@ -266,6 +282,11 @@ export const cancelBooking = async (req, res, next) => {
         const { id } = req.params;
         const userId = req.user.id;
         const userRole = req.user.role;
+
+        // Validate ObjectId
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ message: 'Invalid booking ID format' });
+        }
 
         const booking = await Booking.findById(id);
         if (!booking) {
@@ -340,6 +361,11 @@ export const rescheduleBooking = async (req, res, next) => {
             return res.status(400).json({ message: 'Please provide new dateTime' });
         }
 
+        // Validate ObjectId
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ message: 'Invalid booking ID format' });
+        }
+
         const booking = await Booking.findById(id);
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found' });
@@ -387,24 +413,16 @@ export const rescheduleBooking = async (req, res, next) => {
     }
 };
 
-// Helper function to get valid transitions
-const getValidTransitions = (currentStatus) => {
-    const validTransitions = {
-        Requested: ['Confirmed', 'Cancelled'],
-        Confirmed: ['In-progress', 'Cancelled'],
-        'In-progress': ['Completed'],
-        Completed: [],
-        Cancelled: [],
-    };
-
-    return validTransitions[currentStatus] || [];
-};
-
 // Upload customer issue image
 export const uploadCustomerImage = async (req, res, next) => {
     try {
         const { bookingId } = req.params;
         const customerId = req.user.id;
+
+        // Validate ObjectId
+        if (!isValidObjectId(bookingId)) {
+            return res.status(400).json({ message: 'Invalid booking ID format' });
+        }
 
         const booking = await Booking.findById(bookingId);
         if (!booking) {
@@ -472,6 +490,11 @@ export const uploadProviderWorkImage = async (req, res, next) => {
         // Validate image type
         if (!['before', 'after'].includes(type)) {
             return res.status(400).json({ message: "Image type must be 'before' or 'after'" });
+        }
+
+        // Validate ObjectId
+        if (!isValidObjectId(bookingId)) {
+            return res.status(400).json({ message: 'Invalid booking ID format' });
         }
 
         const booking = await Booking.findById(bookingId);

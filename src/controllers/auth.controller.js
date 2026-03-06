@@ -1,14 +1,7 @@
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import { uploadImage, deleteImage } from '../config/cloudinary.js';
-
-// Generate JWT token
-const generateToken = (id, role) => {
-    return jwt.sign({ id, role }, process.env.JWT_SECRET, {
-        expiresIn: '7d',
-    });
-};
+import { generateToken } from '../utils/generateToken.js';
 
 // Register
 export const register = async (req, res, next) => {
