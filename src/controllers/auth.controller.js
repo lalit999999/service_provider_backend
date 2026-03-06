@@ -2,6 +2,8 @@ import bcrypt from 'bcrypt';
 import User from '../models/User.js';
 import { uploadImage, deleteImage } from '../config/cloudinary.js';
 import { generateToken } from '../utils/generateToken.js';
+import { sendResetPasswordEmail, sendWelcomeEmail } from '../config/email.js';
+import { isValidObjectId } from '../utils/validateObjectId.js';
 
 // Register
 export const register = async (req, res, next) => {
@@ -29,6 +31,14 @@ export const register = async (req, res, next) => {
 
         // Generate token
         const token = generateToken(user._id, user.role);
+
+        try {
+            // Send welcome email
+            await sendWelcomeEmail(email, name);
+        } catch (emailError) {
+            console.error('Failed to send welcome email:', emailError);
+            // Continue even if email fails - user account is created
+        }
 
         res.status(201).json({
             message: 'User registered successfully',
@@ -114,6 +124,11 @@ export const logout = async (req, res, next) => {
 export const uploadProfileImage = async (req, res, next) => {
     try {
         const userId = req.params.userId || req.user.id;
+
+        // Validate ObjectId
+        if (req.params.userId && !isValidObjectId(userId)) {
+            return res.status(400).json({ message: 'Invalid user ID format' });
+        }
 
         if (req.user.id !== userId && req.user.role !== 'admin') {
             return res.status(403).json({ message: 'Unauthorized to upload profile image for this user' });
@@ -270,18 +285,23 @@ export const forgotPassword = async (req, res, next) => {
         const resetToken = Math.floor(1000 + Math.random() * 9000).toString();
         const resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
-        // Store reset token and expiry (note: in production, use database or Redis)
+        // Store reset token and expiry
         user.resetToken = resetToken;
         user.resetTokenExpiry = resetTokenExpiry;
         await user.save();
 
-        // In production, send email with reset link and token
-        // For now, just log it for development
-        console.log(`Password reset code for ${email}: ${resetToken}`);
+        try {
+            // Send password reset email
+            await sendResetPasswordEmail(email, resetToken, user.name);
+        } catch (emailError) {
+            console.error('Failed to send reset email:', emailError);
+            // Still return success even if email fails to maintain security
+            // but log the issue for debugging
+        }
 
         res.status(200).json({
-            message: 'If an account with this email exists, you will receive a password reset code',
-            // In development, return the token for testing
+            message: 'If an account with this email exists, you will receive a password reset link',
+            // In development, optionally return the token for testing
             ...(process.env.NODE_ENV === 'development' && { resetToken })
         });
     } catch (err) {
@@ -294,9 +314,22 @@ export const resetPassword = async (req, res, next) => {
     try {
         const { email, resetToken, newPassword } = req.body;
 
-        if (!email || !resetToken || !newPassword) {
+        // Validate all required fields
+        if (!email || !email.trim()) {
             return res.status(400).json({
-                message: 'Email, reset code, and new password are required'
+                message: 'Email is required'
+            });
+        }
+
+        if (!resetToken || !resetToken.toString().trim()) {
+            return res.status(400).json({
+                message: 'Reset code is required'
+            });
+        }
+
+        if (!newPassword || !newPassword.trim()) {
+            return res.status(400).json({
+                message: 'New password is required'
             });
         }
 
@@ -306,17 +339,20 @@ export const resetPassword = async (req, res, next) => {
             });
         }
 
-        const user = await User.findOne({ email });
+        const normalizedEmail = email.trim().toLowerCase();
+        const user = await User.findOne({ email: normalizedEmail });
         if (!user || !user.resetToken) {
             return res.status(400).json({
-                message: 'Invalid email or reset code'
+                message: 'Invalid email or reset code - no reset request found'
             });
         }
 
         // Check if reset token matches and hasn't expired
-        if (user.resetToken !== resetToken) {
+        // Convert both to string for comparison, trim the incoming token
+        const incomingToken = resetToken.toString().trim();
+        if (user.resetToken !== incomingToken) {
             return res.status(400).json({
-                message: 'Invalid reset code'
+                message: 'Invalid reset code - code does not match'
             });
         }
 
