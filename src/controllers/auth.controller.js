@@ -4,6 +4,7 @@ import { uploadImage, deleteImage } from '../config/cloudinary.js';
 import { generateToken } from '../utils/generateToken.js';
 import { sendResetPasswordEmail, sendWelcomeEmail } from '../config/email.js';
 import { isValidObjectId } from '../utils/validateObjectId.js';
+import { isValidEmail } from '../utils/emailValidator.js';
 
 // Register
 export const register = async (req, res, next) => {
@@ -12,6 +13,12 @@ export const register = async (req, res, next) => {
 
         // Normalize email
         email = email ? email.trim().toLowerCase() : '';
+
+        // Email validation - check format and domain existence
+        const emailValidation = await isValidEmail(email);
+        if (!emailValidation.valid) {
+            return res.status(400).json({ message: emailValidation.error });
+        }
 
         // Check if user exists - use case-insensitive regex query
         const existingUser = await User.findOne({ email: new RegExp(`^${email}$`, 'i') });

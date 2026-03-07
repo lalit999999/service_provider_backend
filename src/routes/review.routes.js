@@ -2,6 +2,7 @@ import express from 'express';
 import {
     createReview,
     getProviderReviews,
+    getServiceReviews,
     getBookingReview,
     updateReview,
     deleteReview,
@@ -13,6 +14,7 @@ const router = express.Router();
 
 // Public routes
 router.get('/provider/:providerId', getProviderReviews);
+router.get('/service/:serviceId', getServiceReviews);
 router.get('/booking/:bookingId', getBookingReview);
 
 // Customer routes

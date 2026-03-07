@@ -8,6 +8,11 @@ const reviewSchema = new mongoose.Schema(
             required: [true, 'Please provide booking ID'],
             unique: true, // One review per booking
         },
+        serviceId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Service',
+            required: [true, 'Please provide service ID'],
+        },
         rating: {
             type: Number,
             required: [true, 'Please provide a rating'],
@@ -18,7 +23,7 @@ const reviewSchema = new mongoose.Schema(
             type: String,
             required: [true, 'Please provide a comment'],
             trim: true,
-            minlength: [10, 'Comment must be at least 10 characters'],
+            minlength: [5, 'Comment must be at least 5 characters'],
             maxlength: [500, 'Comment cannot exceed 500 characters'],
         },
         providerId: {

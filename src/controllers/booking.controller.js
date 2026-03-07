@@ -4,6 +4,22 @@ import User from '../models/User.js';
 import { uploadImage, deleteImage } from '../config/cloudinary.js';
 import { isValidObjectId } from '../utils/validateObjectId.js';
 
+// Helper function to add hasReview flag to booking object
+const addReviewStatusToBooking = async (bookingObj) => {
+    try {
+        const Review = (await import('../models/Review.js')).default;
+        if (bookingObj.status === 'Completed') {
+            const review = await Review.findOne({ bookingId: bookingObj._id });
+            bookingObj.hasReview = !!review;
+        } else {
+            bookingObj.hasReview = false;
+        }
+    } catch (error) {
+        bookingObj.hasReview = false;
+    }
+    return bookingObj;
+};
+
 // Create booking (customer only)
 export const createBooking = async (req, res, next) => {
     try {
@@ -91,11 +107,13 @@ export const createBooking = async (req, res, next) => {
         await booking.populate([
             { path: 'customerId', select: 'name email city area' },
             { path: 'providerId', select: 'name email city area isApproved isAvailable' },
+            { path: 'serviceId', select: 'title description basePrice categoryId' },
+        ]);
 
-            res.status(201).json({
-                message: 'Booking created successfully',
-                booking,
-            })]);
+        res.status(201).json({
+            message: 'Booking created successfully',
+            booking,
+        });
     } catch (err) {
         next(err);
     }
@@ -118,13 +136,22 @@ export const getBookings = async (req, res, next) => {
         const bookings = await Booking.find(filter).populate([
             { path: 'customerId', select: 'name email city area' },
             { path: 'providerId', select: 'name email city area' },
-            { path: 'serviceId', select: 'title description basePrice' },
+            { path: 'serviceId', select: 'title description basePrice categoryId' },
         ]);
+
+        // Transform bookings and add hasReview flag
+        const transformedBookings = await Promise.all(
+            bookings.map(async (booking) => {
+                const bookingObj = booking.toObject();
+                bookingObj.service = bookingObj.serviceId;
+                return await addReviewStatusToBooking(bookingObj);
+            })
+        );
 
         res.status(200).json({
             message: 'Bookings retrieved successfully',
-            count: bookings.length,
-            bookings,
+            count: transformedBookings.length,
+            bookings: transformedBookings,
         });
     } catch (err) {
         next(err);
@@ -145,7 +172,7 @@ export const getBookingById = async (req, res, next) => {
         const booking = await Booking.findById(id).populate([
             { path: 'customerId', select: 'name email city area' },
             { path: 'providerId', select: 'name email city area' },
-            { path: 'serviceId', select: 'title description basePrice' },
+            { path: 'serviceId', select: 'title description basePrice categoryId' },
         ]);
 
         if (!booking) {
@@ -160,16 +187,21 @@ export const getBookingById = async (req, res, next) => {
             return res.status(403).json({ message: 'Unauthorized access' });
         }
 
+        // Transform serviceId to service for frontend compatibility
+        let bookingObj = booking.toObject();
+        bookingObj.service = bookingObj.serviceId;
+        bookingObj = await addReviewStatusToBooking(bookingObj);
+
         res.status(200).json({
             message: 'Booking retrieved successfully',
-            booking,
+            booking: bookingObj,
         });
     } catch (err) {
         next(err);
     }
 };
 
-// Accept booking (provider only) - Requested → Confirmed
+// Accept booking (provider only)
 export const acceptBooking = async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -207,12 +239,16 @@ export const acceptBooking = async (req, res, next) => {
         await booking.populate([
             { path: 'customerId', select: 'name email city area' },
             { path: 'providerId', select: 'name email city area' },
-            { path: 'serviceId', select: 'title description basePrice' },
+            { path: 'serviceId', select: 'title description basePrice categoryId' },
         ]);
+
+        // Transform serviceId to service for frontend compatibility
+        const bookingObj = booking.toObject();
+        bookingObj.service = bookingObj.serviceId;
 
         res.status(200).json({
             message: 'Booking accepted successfully',
-            booking,
+            booking: bookingObj,
         });
     } catch (err) {
         next(err);
@@ -264,12 +300,16 @@ export const updateBookingStatus = async (req, res, next) => {
         await booking.populate([
             { path: 'customerId', select: 'name email city area' },
             { path: 'providerId', select: 'name email city area' },
-            { path: 'serviceId', select: 'title description basePrice' },
+            { path: 'serviceId', select: 'title description basePrice categoryId' },
         ]);
+
+        // Transform serviceId to service for frontend compatibility
+        const bookingObj = booking.toObject();
+        bookingObj.service = bookingObj.serviceId;
 
         res.status(200).json({
             message: 'Booking status updated successfully',
-            booking,
+            booking: bookingObj,
         });
     } catch (err) {
         next(err);
@@ -337,12 +377,16 @@ export const cancelBooking = async (req, res, next) => {
         await booking.populate([
             { path: 'customerId', select: 'name email city area' },
             { path: 'providerId', select: 'name email city area' },
-            { path: 'serviceId', select: 'title description basePrice' },
+            { path: 'serviceId', select: 'title description basePrice categoryId' },
         ]);
+
+        // Transform serviceId to service for frontend compatibility
+        const bookingObj = booking.toObject();
+        bookingObj.service = bookingObj.serviceId;
 
         res.status(200).json({
             message: 'Booking cancelled successfully',
-            booking,
+            booking: bookingObj,
         });
     } catch (err) {
         next(err);
@@ -401,12 +445,16 @@ export const rescheduleBooking = async (req, res, next) => {
         await booking.populate([
             { path: 'customerId', select: 'name email city area' },
             { path: 'providerId', select: 'name email city area' },
-            { path: 'serviceId', select: 'title description basePrice' },
+            { path: 'serviceId', select: 'title description basePrice categoryId' },
         ]);
+
+        // Transform serviceId to service for frontend compatibility
+        const bookingObj = booking.toObject();
+        bookingObj.service = bookingObj.serviceId;
 
         res.status(200).json({
             message: 'Booking rescheduled successfully',
-            booking,
+            booking: bookingObj,
         });
     } catch (err) {
         next(err);
@@ -468,12 +516,16 @@ export const uploadCustomerImage = async (req, res, next) => {
         await booking.populate([
             { path: 'customerId', select: 'name email city area' },
             { path: 'providerId', select: 'name email city area' },
-            { path: 'serviceId', select: 'title description basePrice' },
+            { path: 'serviceId', select: 'title description basePrice categoryId' },
         ]);
+
+        // Transform serviceId to service for frontend compatibility
+        const bookingObj = booking.toObject();
+        bookingObj.service = bookingObj.serviceId;
 
         res.status(200).json({
             message: 'Customer image uploaded successfully',
-            booking,
+            booking: bookingObj,
         });
     } catch (err) {
         next(err);
@@ -532,12 +584,16 @@ export const uploadProviderWorkImage = async (req, res, next) => {
         await booking.populate([
             { path: 'customerId', select: 'name email city area' },
             { path: 'providerId', select: 'name email city area' },
-            { path: 'serviceId', select: 'title description basePrice' },
+            { path: 'serviceId', select: 'title description basePrice categoryId' },
         ]);
+
+        // Transform serviceId to service for frontend compatibility
+        const bookingObj = booking.toObject();
+        bookingObj.service = bookingObj.serviceId;
 
         res.status(200).json({
             message: `Provider ${type} image uploaded successfully`,
-            booking,
+            booking: bookingObj,
         });
     } catch (err) {
         next(err);
@@ -578,12 +634,16 @@ export const addNotes = async (req, res, next) => {
         await booking.populate([
             { path: 'customerId', select: 'name email city area' },
             { path: 'providerId', select: 'name email city area' },
-            { path: 'serviceId', select: 'title description basePrice' },
+            { path: 'serviceId', select: 'title description basePrice categoryId' },
         ]);
+
+        // Transform serviceId to service for frontend compatibility
+        const bookingObj = booking.toObject();
+        bookingObj.service = bookingObj.serviceId;
 
         res.status(200).json({
             message: 'Work notes added successfully',
-            booking,
+            booking: bookingObj,
         });
     } catch (err) {
         next(err);

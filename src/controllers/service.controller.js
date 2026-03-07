@@ -46,15 +46,16 @@ export const getMyServices = async (req, res, next) => {
         const providerId = req.user.id; // From auth middleware
 
         // Get only services created by this provider
-        const services = await Service.find({ providerId }).populate([
-            { path: 'providerId', select: 'name email city area' },
-            { path: 'categoryId', select: 'name description' },
-        ]);
+        const services = await Service.find({ providerId })
+            .populate([
+                { path: 'providerId', select: 'name email city area' },
+                { path: 'categoryId', select: 'name description' },
+            ]);
 
         res.status(200).json({
             message: 'Your services retrieved successfully',
             count: services.length,
-            services,
+            allservices: services,
         });
     } catch (err) {
         next(err);

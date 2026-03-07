@@ -21,6 +21,15 @@ export const createReview = async (req, res, next) => {
             return res.status(400).json({ message: 'Rating must be between 1 and 5' });
         }
 
+        if (comment.trim().length < 5) {
+            return res.status(400).json({ message: 'Comment must be at least 5 characters' });
+        }
+
+        // Validate bookingId format
+        if (!isValidObjectId(bookingId)) {
+            return res.status(400).json({ message: 'Invalid booking ID format' });
+        }
+
         // Check if booking exists and is completed
         const booking = await Booking.findById(bookingId);
         if (!booking) {
@@ -50,6 +59,7 @@ export const createReview = async (req, res, next) => {
         // Create review
         const review = await Review.create({
             bookingId,
+            serviceId: booking.serviceId,
             rating,
             comment,
             providerId: booking.providerId,
@@ -59,6 +69,7 @@ export const createReview = async (req, res, next) => {
         // Populate details
         await review.populate([
             { path: 'bookingId', select: '_id dateTime' },
+            { path: 'serviceId', select: 'title price' },
             { path: 'providerId', select: 'name email' },
             { path: 'customerId', select: 'name email' },
         ]);
@@ -132,6 +143,12 @@ export const getProviderReviews = async (req, res, next) => {
                             },
                         },
                         {
+                            $unwind: {
+                                path: '$customer',
+                                preserveNullAndEmptyArrays: true,
+                            },
+                        },
+                        {
                             $project: {
                                 _id: 1,
                                 bookingId: 1,
@@ -176,6 +193,88 @@ export const getProviderReviews = async (req, res, next) => {
     }
 };
 
+// Get reviews for a specific service (by service or by provider as fallback)
+export const getServiceReviews = async (req, res, next) => {
+    try {
+        const { serviceId } = req.params;
+
+        // Validate serviceId is a valid ObjectId
+        if (!mongoose.Types.ObjectId.isValid(serviceId)) {
+            return res.status(400).json({ message: 'Invalid service ID' });
+        }
+
+        // Fetch the service to get its provider
+        const Service = (await import('../models/Service.js')).default;
+        const service = await Service.findById(serviceId).select('providerId');
+
+        if (!service) {
+            return res.status(404).json({ message: 'Service not found' });
+        }
+
+        console.log('[getServiceReviews] Fetching reviews for serviceId:', serviceId, 'providerId:', service.providerId.toString());
+
+        // Find reviews by providerId (all reviews for this provider's services)
+        const reviews = await Review.find({
+            providerId: service.providerId,
+        })
+            .populate('customerId', 'name email city area')
+            .populate('bookingId', '_id dateTime')
+            .sort({ createdAt: -1 });
+
+        console.log('[getServiceReviews] Found', reviews.length, 'reviews');
+
+        // Calculate stats
+        const stats = reviews.length > 0 ? {
+            averageRating: (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1),
+            totalReviews: reviews.length,
+            minRating: Math.min(...reviews.map(r => r.rating)),
+            maxRating: Math.max(...reviews.map(r => r.rating)),
+        } : {
+            averageRating: 0,
+            totalReviews: 0,
+            minRating: null,
+            maxRating: null,
+        };
+
+        // Transform reviews to match frontend expectations
+        const transformedReviews = reviews.map(review => ({
+            _id: review._id,
+            bookingId: review.bookingId,
+            serviceId: review.serviceId,
+            rating: review.rating,
+            comment: review.comment,
+            providerId: review.providerId,
+            customerId: review.customerId,
+            createdAt: review.createdAt,
+            updatedAt: review.updatedAt,
+            customer: {
+                _id: review.customerId?._id,
+                name: review.customerId?.name,
+                email: review.customerId?.email,
+                city: review.customerId?.city,
+                area: review.customerId?.area,
+            },
+            booking: {
+                _id: review.bookingId?._id,
+                dateTime: review.bookingId?.dateTime,
+            },
+        }));
+
+        res.status(200).json({
+            message: 'Service reviews retrieved successfully',
+            count: stats.totalReviews,
+            averageRating: stats.averageRating,
+            minRating: stats.minRating,
+            maxRating: stats.maxRating,
+            totalReviews: stats.totalReviews,
+            reviews: transformedReviews,
+        });
+    } catch (err) {
+        console.error('[getServiceReviews] Error:', err.message);
+        next(err);
+    }
+};
+
 // Get review for a booking
 export const getBookingReview = async (req, res, next) => {
     try {
@@ -192,13 +291,19 @@ export const getBookingReview = async (req, res, next) => {
             { path: 'customerId', select: 'name email' },
         ]);
 
+        // Return reviewExists flag to help frontend show Add/Update Review button
         if (!review) {
-            return res.status(404).json({ message: 'Review not found' });
+            return res.status(200).json({
+                message: 'No review found for this booking',
+                reviewExists: false,
+                review: null,
+            });
         }
 
         res.status(200).json({
             message: 'Review retrieved successfully',
-            review,
+            reviewExists: true,
+            review, // Contains review._id needed for PUT /api/reviews/:id
         });
     } catch (err) {
         next(err);
