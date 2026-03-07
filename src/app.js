@@ -15,7 +15,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cors({
-    origin: 'http://localhost:5173', // Your Vite URL
+    origin: process.env.CORS, // Your Vite URL
     credentials: true,               // Required for withCredentials: true
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],// Allows your interceptor's header
