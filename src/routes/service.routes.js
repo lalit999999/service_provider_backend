@@ -3,6 +3,7 @@ import {
     createService,
     getServices,
     getServiceById,
+    getMyServices,
     updateService,
     deleteService,
 } from '../controllers/service.controller.js';
@@ -16,6 +17,7 @@ router.get('/', getServices);
 router.get('/:id', getServiceById);
 
 // Provider routes
+router.get('/my-services', authMiddleware, roleMiddleware(['provider']), getMyServices);
 router.post('/', authMiddleware, roleMiddleware(['provider']), createService);
 router.put('/:id', authMiddleware, roleMiddleware(['provider']), updateService);
 router.delete('/:id', authMiddleware, roleMiddleware(['provider']), deleteService);

@@ -40,6 +40,27 @@ export const createService = async (req, res, next) => {
     }
 };
 
+// Get provider's own services (provider dashboard)
+export const getMyServices = async (req, res, next) => {
+    try {
+        const providerId = req.user.id; // From auth middleware
+
+        // Get only services created by this provider
+        const services = await Service.find({ providerId }).populate([
+            { path: 'providerId', select: 'name email city area' },
+            { path: 'categoryId', select: 'name description' },
+        ]);
+
+        res.status(200).json({
+            message: 'Your services retrieved successfully',
+            count: services.length,
+            services,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
 // Get all services with filtering
 export const getServices = async (req, res, next) => {
     try {
