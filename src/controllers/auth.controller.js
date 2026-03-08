@@ -397,3 +397,39 @@ export const resetPassword = async (req, res, next) => {
         next(err);
     }
 };
+
+// Validate Email
+export const validateEmail = async (req, res, next) => {
+    try {
+        let { email } = req.body;
+
+        // Normalize email
+        email = email ? email.trim().toLowerCase() : '';
+
+        // Validate email format and domain
+        const emailValidation = await isValidEmail(email);
+
+        if (!emailValidation.valid) {
+            return res.status(200).json({
+                valid: false,
+                message: emailValidation.error,
+            });
+        }
+
+        // Check if email already exists
+        const existingUser = await User.findOne({ email: new RegExp(`^${email}$`, 'i') });
+        if (existingUser) {
+            return res.status(200).json({
+                valid: false,
+                message: 'Email already registered',
+            });
+        }
+
+        res.status(200).json({
+            valid: true,
+            message: 'Email is available',
+        });
+    } catch (err) {
+        next(err);
+    }
+};
